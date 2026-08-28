@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dízimo — Paróquia São Miguel Arcanjo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #F5F1E7;
+    --cream-line: #E4DDC9;
+    --dark: #1C1712;
+    --dark-soft: #3A322A;
+    --gold: #C9A24A;
+    --gold-deep: #A9852F;
+    --brick: #A8402F;
+    --brick-hover: #8F3226;
+    --white: #FFFFFF;
+    --muted: #7A7266;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #EDEAE1;
+    color: var(--dark);
+  }
+  input, select, button { font-family: inherit; font-size: 14px; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---------- Login ---------- */
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 12px 30px rgba(28,23,18,0.18);
+  }
+  .login-badge {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; color: var(--gold);
+    margin: 0 auto 12px;
+  }
+  .login-card h1 { text-align: center; font-size: 18px; margin: 0 0 4px; }
+  .login-card p.sub { text-align: center; color: var(--muted); font-size: 12px; margin: 0 0 20px; }
+
+  .campo { margin-bottom: 12px; }
+  .campo label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .campo input, .campo select, .campo textarea {
+    width: 100%; border: 1px solid var(--cream-line); border-radius: 8px;
+    padding: 9px 10px; background: var(--white); color: var(--dark);
+  }
+  .campo input:focus, .campo select:focus, .campo textarea:focus { outline: 2px solid var(--gold); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: none; border-radius: 24px; padding: 10px 18px;
+    font-weight: 700; font-size: 12.5px; letter-spacing: 0.3px; text-transform: uppercase;
+    cursor: pointer; background: var(--brick); color: var(--white);
+  }
+  .btn:hover { background: var(--brick-hover); }
+  .btn.full { width: 100%; }
+  .btn.outline {
+    background: transparent; color: var(--dark); border: 1.5px solid var(--dark);
+  }
+  .btn.small { padding: 6px 12px; font-size: 11px; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn.perigo { background: transparent; color: var(--brick); border: 1.5px solid var(--brick); }
+  .btn.perigo:hover { background: #F6DFDF; }
+
+  .erro {
+    background: #F6DFDF; color: #7A2A21; border: 1px solid #E3B5AC;
+    border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 12px;
+  }
+  .sucesso {
+    background: #DCEAE7; color: #1F5A50; border: 1px solid #B7D6CF;
+    border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 12px;
+  }
+
+  /* ---------- Shell / header ---------- */
+  header.topbar {
+    background: var(--dark); color: var(--white);
+    padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+  }
+  header.topbar .brand { display: flex; align-items: center; gap: 10px; }
+  header.topbar .badge {
+    width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; color: var(--gold); font-size: 12px;
+  }
+  header.topbar .titulo { font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; }
+  header.topbar .sub { font-size: 10px; color: var(--gold); }
+  header.topbar .sair { background: transparent; border: 1px solid var(--white); color: var(--white); border-radius: 16px; padding: 6px 12px; font-size: 11px; cursor: pointer; }
+
+  nav.tabs { display: flex; gap: 8px; padding: 14px 18px 0; flex-wrap: wrap; }
+  nav.tabs button {
+    border-radius: 20px; border: 1.5px solid var(--cream-line); background: var(--white);
+    color: var(--dark-soft); padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  }
+  nav.tabs button.ativo { background: var(--dark); border-color: var(--dark); color: var(--white); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 18px; }
+  .cartao {
+    background: var(--white); border: 1px solid var(--cream-line); border-radius: 10px;
+    padding: 16px; margin-bottom: 16px;
+  }
+  .cartao h2 { font-size: 14px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dark-soft); }
+
+  .linha-lista {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 10px; border-bottom: 1px dashed var(--cream-line); font-size: 13px;
+  }
+  .linha-lista:last-child { border-bottom: none; }
+  .linha-lista .codigo { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--muted); margin-right: 6px; }
+
+  .pill-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .pill-toggle button {
+    flex: 1; padding: 7px 0; border-radius: 20px; border: 1px solid var(--cream-line);
+    background: transparent; color: var(--muted); font-weight: 600; font-size: 12px; cursor: pointer;
+  }
+  .pill-toggle button.ativo { background: var(--brick); color: var(--white); border-color: var(--brick); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 640px) { .metricas { grid-template-columns: 1fr; } }
+  .metrica { background: var(--white); border: 1px solid var(--cream-line); border-radius: 10px; padding: 14px 16px; }
+  .metrica .label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .metrica .valor { font-family: 'IBM Plex Mono', monospace; font-size: 21px; font-weight: 700; }
+
+  table.relatorio { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.relatorio th { text-align: left; border-bottom: 1.5px solid var(--dark); padding: 6px 4px; color: var(--muted); font-weight: 600; }
+  table.relatorio td { padding: 7px 4px; border-bottom: 1px dashed var(--cream-line); }
+  table.relatorio td.num { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+
+  .tag-data {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700; color: var(--brick);
+    background: var(--cream); padding: 4px 8px; border-radius: 6px;
+  }
+  .vazio { text-align: center; color: var(--muted); font-size: 12.5px; padding: 20px 0; }
+  .carimbo {
+    display: inline-block; border: 2px solid var(--brick); color: var(--brick);
+    font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 12px; letter-spacing: 1px;
+    padding: 4px 10px; border-radius: 3px; transform: rotate(-3deg); text-transform: uppercase;
+  }
+  .muted { color: var(--muted); font-size: 12px; }
+  .link-sel { color: var(--brick); font-size: 11px; font-weight: 600; cursor: pointer; background: none; border: none; }
+
+  .barra-linha { display: grid; grid-template-columns: 160px 1fr 90px; align-items: center; gap: 10px; padding: 6px 0; }
+  .barra-nome { font-size: 12px; color: var(--dark-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .barra-trilha { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--cream); }
+  .barra-segmento { height: 100%; }
+  .barra-valor { font-size: 12px; text-align: right; font-weight: 700; }
+  .legenda-cores { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
+  .legenda-cores span { display: flex; align-items: center; gap: 4px; }
+  .legenda-cores i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  @media (max-width: 640px) {
+    .barra-linha { grid-template-columns: 1fr; gap: 2px; }
+    .barra-valor { text-align: left; }
+  }
+
+  .serie-grafico { display: flex; align-items: flex-end; gap: 10px; height: 220px; overflow-x: auto; padding: 8px 4px 0; }
+  .serie-coluna { display: flex; flex-direction: column; align-items: center; min-width: 42px; height: 100%; justify-content: flex-end; }
+  .serie-barra { width: 26px; display: flex; flex-direction: column-reverse; border-radius: 3px 3px 0 0; overflow: hidden; background: var(--cream); }
+  .serie-segmento { width: 100%; }
+  .serie-label { font-size: 9.5px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
+  .serie-total { font-size: 9px; color: var(--dark-soft); font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   CONFIGURAÇÃO — troque pela URL do backend em produção
+   ========================================================= */
+const API_BASE = "https://dizimo-api-z4xu.onrender.com";
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+const state = {
+  token: localStorage.getItem("dizimo_token") || null,
+  usuario: null,
+  comunidades: [],
+  abaTesoureiro: "dizimo",
+  periodoAniversario: "semana",
+  dizimistaSelecionado: null,
+  buscaDizimista: "",
+  resultadosBusca: [],
+  mesRelatorio: new Date().getMonth() + 1,
+  anoRelatorio: new Date().getFullYear(),
+  relatorio: null,
+  abaSecretaria: "consolidado",
+  abaCadastros: "dizimistas",
+  cadastroDizimistaComunidade: "",
+  cadastroDizimistaBusca: "",
+  dizimistaEditandoId: null,
+  novoDizimistaAberto: false,
+  usuarioFormAberto: false,
+  usuarioEditandoId: null,
+  balancoGranularidade: "mes",
+  balancoComunidade: "",
+};
+
+/* =========================================================
+   API
+   ========================================================= */
+async function api(path, opts = {}) {
+  const headers = opts.headers ? { ...opts.headers } : {};
+  if (state.token) headers["Authorization"] = "Bearer " + state.token;
+  if (opts.body && !(opts.body instanceof FormData) && typeof opts.body !== "string") {
+    headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(opts.body);
+  } else if (opts.body && typeof opts.body === "string") {
+    headers["Content-Type"] = "application/json";
+  }
+  const res = await fetch(API_BASE + path, { ...opts, headers });
+  if (res.status === 401) {
+    logout();
+    throw new Error("Sessão expirada. Faça login novamente.");
+  }
+  if (!res.ok) {
+    let msg = "Erro na requisição (" + res.status + ")";
+    try {
+      const corpo = await res.json();
+      if (corpo.detail) msg = typeof corpo.detail === "string" ? corpo.detail : JSON.stringify(corpo.detail);
+    } catch (e) {}
+    throw new Error(msg);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+async function apiLogin(login, senha) {
+  const form = new URLSearchParams();
+  form.append("username", login);
+  form.append("password", senha);
+  const res = await fetch(API_BASE + "/auth/login", { method: "POST", body: form });
+  if (!res.ok) throw new Error("Login ou senha incorretos");
+  return res.json();
+}
+
+function logout() {
+  state.token = null;
+  state.usuario = null;
+  localStorage.removeItem("dizimo_token");
+  render();
+}
+
+/* =========================================================
+   FORMATAÇÃO
+   ========================================================= */
+function fmtMoeda(v) {
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+function hojeISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+function escapeHtml(s) {
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
+async function init() {
+  if (state.token) {
+    try {
+      state.usuario = await api("/auth/eu");
+      state.comunidades = await api("/comunidades");
+    } catch (e) {
+      state.token = null;
+      state.usuario = null;
+    }
+  }
+  render();
+}
+
+/* =========================================================
+   RENDER RAIZ
+   ========================================================= */
+function render() {
+  const app = document.getElementById("app");
+  if (!state.token || !state.usuario) {
+    app.innerHTML = renderLogin();
+    attachLoginHandlers();
+    return;
+  }
+  app.innerHTML = renderShell();
+  attachShellHandlers();
+}
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+function renderLogin(erro) {
+  return `
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-badge">M</div>
+        <h1 class="serif">Paróquia São Miguel Arcanjo</h1>
+        <p class="sub">Sistema de Dízimo</p>
+        ${erro ? `<div class="erro">${escapeHtml(erro)}</div>` : ""}
+        <form id="form-login">
+          <div class="campo">
+            <label>Login</label>
+            <input type="text" id="login-usuario" autocomplete="username" required />
+          </div>
+          <div class="campo">
+            <label>Senha</label>
+            <input type="password" id="login-senha" autocomplete="current-password" required />
+          </div>
+          <button type="submit" class="btn full">Entrar</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function attachLoginHandlers() {
+  const form = document.getElementById("form-login");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const login = document.getElementById("login-usuario").value.trim();
+    const senha = document.getElementById("login-senha").value;
+    const btn = form.querySelector("button");
+    btn.disabled = true;
+    try {
+      const dados = await apiLogin(login, senha);
+      state.token = dados.access_token;
+      localStorage.setItem("dizimo_token", state.token);
+      state.usuario = await api("/auth/eu");
+      state.comunidades = await api("/comunidades");
+      render();
+    } catch (err) {
+      document.getElementById("app").innerHTML = renderLogin(err.message);
+      attachLoginHandlers();
+    }
+  });
+}
+
+/* =========================================================
+   SHELL (cabeçalho + navegação por perfil)
+   ========================================================= */
+function nomeComunidade(id) {
+  const c = state.comunidades.find((c) => c.id === id);
+  return c ? c.nome : "";
+}
+
+function renderShell() {
+  const ehSecretaria = state.usuario.perfil === "secretaria";
+  const subtitulo = ehSecretaria ? "secretaria / pároco" : nomeComunidade(state.usuario.comunidade_id);
+
+  return `
+    <header class="topbar">
+      <div class="brand">
+        <div class="badge">M</div>
+        <div>
+          <div class="titulo">Dízimo — São Miguel Arcanjo</div>
+          <div class="sub">${escapeHtml(subtitulo)}</div>
+        </div>
+      </div>
+      <button class="sair" id="btn-sair">Sair</button>
+    </header>
+    ${ehSecretaria ? renderNavSecretaria() + '<main id="conteudo">' + renderGestao() + "</main>" : renderNavTesoureiro() + '<main id="conteudo">' + renderTesoureiro() + "</main>"}
+  `;
+}
+
+function attachShellHandlers() {
+  document.getElementById("btn-sair").addEventListener("click", logout);
+  if (state.usuario.perfil === "secretaria") {
+    attachNavSecretaria();
+    attachGestaoHandlers();
+  } else {
+    attachNavTesoureiro();
+    attachTesoureiroHandlers();
+  }
+}
+
+/* =========================================================
+   VISÃO TESOUREIRO
+   ========================================================= */
+function renderNavTesoureiro() {
+  const abas = [
+    ["dizimo", "Dízimo"],
+    ["ofertorio", "Ofertório"],
+    ["aniversarios", "Aniversários"],
+  ];
+  return `<nav class="tabs">${abas
+    .map(([id, label]) => `<button data-aba="${id}" class="${state.abaTesoureiro === id ? "ativo" : ""}">${label}</button>`)
+    .join("")}</nav>`;
+}
+
+function attachNavTesoureiro() {
+  document.querySelectorAll("nav.tabs button[data-aba]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.abaTesoureiro = btn.dataset.aba;
+      state.dizimistaSelecionado = null;
+      document.getElementById("conteudo").innerHTML = renderTesoureiro();
+      attachTesoureiroHandlers();
+      document.querySelectorAll("nav.tabs button[data-aba]").forEach((b) => b.classList.toggle("ativo", b.dataset.aba === state.abaTesoureiro));
+    });
+  });
+}
+
+function renderTesoureiro() {
+  if (state.abaTesoureiro === "dizimo") return renderAbaDizimo();
+  if (state.abaTesoureiro === "ofertorio") return renderAbaOfertorio();
+  if (state.abaTesoureiro === "aniversarios") return renderAbaAniversarios(false);
+  return "";
+}
+
+function attachTesoureiroHandlers() {
+  if (state.abaTesoureiro === "dizimo") attachAbaDizimoHandlers();
+  if (state.abaTesoureiro === "ofertorio") attachAbaOfertorioHandlers();
+  if (state.abaTesoureiro === "aniversarios") attachAbaAniversariosHandlers(false);
+}
+
+/* ---------- Aba Dízimo ---------- */
+function renderAbaDizimo() {
+  if (state.dizimistaSelecionado === "avulso") {
+    return renderFormularioContribuicao(null, true);
+  }
+  if (state.dizimistaSelecionado) {
+    return renderFormularioContribuicao(state.dizimistaSelecionado, false);
+  }
+  return `
+    <div class="cartao">
+      <h2>Buscar dizimista</h2>
+      <div class="campo">
+        <input type="text" id="busca-dizimista" placeholder="Nome ou código..." value="${escapeHtml(state.buscaDizimista)}" />
+      </div>
+      <div id="resultados-busca"></div>
+      <button class="link-sel" id="btn-avulso" style="margin-top:8px;">+ lançar como avulso</button>
+    </div>
+    <div class="cartao">
+      <h2>Novo dizimista</h2>
+      ${renderFormularioNovoDizimista()}
+    </div>
+    <div class="cartao">
+      <h2>Últimos lançamentos de dízimo</h2>
+      <div id="dz-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarListaContribuicoes() {
+  const container = document.getElementById("dz-lista");
+  if (!container) return;
+  try {
+    const lista = await api("/contribuicoes");
+    container.innerHTML = lista.length
+      ? lista
+          .slice(0, 15)
+          .map((c) => renderLinhaContribuicao(c, false))
+          .join("")
+      : `<div class="vazio">Nenhum lançamento ainda.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderLinhaContribuicao(c, comComunidade) {
+  const quem = c.dizimista_nome
+    ? `<span class="codigo mono">${escapeHtml(c.dizimista_codigo || "—")}</span>${escapeHtml(c.dizimista_nome)}`
+    : `${escapeHtml(c.nome_avulso || "avulso")} <span class="muted">(avulso)</span>`;
+  const formaLabel = { dinheiro: "Dinheiro", pix: "Pix", cartao: "Cartão", outro: "Outro" }[c.forma_pagamento] || c.forma_pagamento;
+  return `
+    <div class="linha-lista" style="flex-direction:column; align-items:flex-start; gap:4px;">
+      <div style="display:flex; justify-content:space-between; width:100%;">
+        <span>${quem}${comComunidade ? ` <span class="muted">· ${escapeHtml(nomeComunidade(c.comunidade_id))}</span>` : ""}</span>
+        <span class="mono" style="font-weight:700;">${fmtMoeda(c.valor)}</span>
+      </div>
+      <div class="muted" style="font-size:11px;">
+        ${c.data_pagamento.split("-").reverse().join("/")} · ${formaLabel}${c.meses_referencia ? " · " + escapeHtml(c.meses_referencia) : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderFormularioNovoDizimista(comSeletorComunidade) {
+  return `
+    <form id="form-novo-dizimista">
+      <div class="grid2">
+        <div class="campo"><label>Código</label><input type="text" id="nd-codigo" /></div>
+        <div class="campo"><label>Nome completo *</label><input type="text" id="nd-nome" required /></div>
+      </div>
+      ${
+        comSeletorComunidade
+          ? `<div class="campo"><label>Comunidade *</label>
+              <select id="nd-comunidade">
+                ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+              </select>
+            </div>`
+          : ""
+      }
+      <div class="grid2">
+        <div class="campo"><label>Data de nascimento</label><input type="date" id="nd-nascimento" /></div>
+        <div class="campo"><label>Telefone</label><input type="text" id="nd-telefone" /></div>
+      </div>
+      <div class="campo"><label>Endereço</label><input type="text" id="nd-endereco" /></div>
+      <div id="nd-erro"></div>
+      <div id="nd-sucesso"></div>
+      <button type="submit" class="btn full">Cadastrar dizimista</button>
+    </form>
+  `;
+}
+
+function attachFormularioNovoDizimistaHandlers(comunidadeIdFixo, aoSalvar) {
+  document.getElementById("form-novo-dizimista").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroDiv = document.getElementById("nd-erro");
+    const sucessoDiv = document.getElementById("nd-sucesso");
+    erroDiv.innerHTML = "";
+    if (sucessoDiv) sucessoDiv.innerHTML = "";
+    const comunidadeId = comunidadeIdFixo || Number(document.getElementById("nd-comunidade").value);
+    const corpo = {
+      codigo: document.getElementById("nd-codigo").value.trim() || null,
+      nome: document.getElementById("nd-nome").value.trim(),
+      comunidade_id: comunidadeId,
+      data_nascimento: document.getElementById("nd-nascimento").value || null,
+      telefone: document.getElementById("nd-telefone").value.trim() || null,
+      endereco: document.getElementById("nd-endereco").value.trim() || null,
+    };
+    try {
+      await api("/dizimistas", { method: "POST", body: corpo });
+      aoSalvar();
+    } catch (err) {
+      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    }
+  });
+}
+
+function attachAbaDizimoHandlers() {
+  if (state.dizimistaSelecionado) {
+    attachFormularioContribuicaoHandlers();
+    return;
+  }
+
+  const inputBusca = document.getElementById("busca-dizimista");
+  const renderizarResultados = async () => {
+    const termo = inputBusca.value.trim();
+    state.buscaDizimista = termo;
+    const container = document.getElementById("resultados-busca");
+    if (!termo) {
+      container.innerHTML = "";
+      return;
+    }
+    try {
+      const resultados = await api("/dizimistas?busca=" + encodeURIComponent(termo));
+      state.resultadosBusca = resultados;
+      container.innerHTML = resultados.length
+        ? resultados
+            .map(
+              (d) => `
+          <div class="linha-lista">
+            <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${escapeHtml(d.nome)}</span>
+            <button class="link-sel" data-id="${d.id}">selecionar</button>
+          </div>`
+            )
+            .join("")
+        : `<div class="vazio">Nenhum dizimista encontrado.</div>`;
+      container.querySelectorAll("button[data-id]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const dizimista = state.resultadosBusca.find((d) => d.id === Number(btn.dataset.id));
+          state.dizimistaSelecionado = dizimista;
+          document.getElementById("conteudo").innerHTML = renderTesoureiro();
+          attachTesoureiroHandlers();
+        });
+      });
+    } catch (err) {
+      container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    }
+  };
+  let timeoutBusca;
+  inputBusca.addEventListener("input", () => {
+    clearTimeout(timeoutBusca);
+    timeoutBusca = setTimeout(renderizarResultados, 250);
+  });
+  if (state.buscaDizimista) renderizarResultados();
+
+  carregarListaContribuicoes();
+
+  document.getElementById("btn-avulso").addEventListener("click", () => {
+    state.dizimistaSelecionado = "avulso";
+    document.getElementById("conteudo").innerHTML = renderTesoureiro();
+    attachTesoureiroHandlers();
+  });
+
+  attachFormularioNovoDizimistaHandlers(state.usuario.comunidade_id, () => {
+    document.getElementById("conteudo").innerHTML = renderTesoureiro();
+    attachTesoureiroHandlers();
+  });
+}
+
+function renderFormularioContribuicao(dizimista, avulso) {
+  return `
+    <div class="cartao">
+      <button class="link-sel" id="btn-voltar" style="margin-bottom:10px;">&larr; voltar à busca</button>
+      <h2>${avulso ? "Contribuição avulsa" : "Lançar dízimo"}</h2>
+      ${!avulso ? `<p class="muted"><span class="codigo mono">${escapeHtml(dizimista.codigo || "—")}</span> ${escapeHtml(dizimista.nome)}</p>` : ""}
+      <form id="form-contribuicao">
+        ${avulso ? `<div class="campo"><label>Nome do doador *</label><input type="text" id="ct-nome-avulso" required /></div>` : ""}
+        <div class="grid2">
+          <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" min="0.01" id="ct-valor" required /></div>
+          <div class="campo"><label>Data do pagamento *</label><input type="date" id="ct-data" value="${hojeISO()}" required /></div>
+        </div>
+        <div class="campo"><label>Meses de referência (opcional)</label><input type="text" id="ct-meses" placeholder="ex: jul e ago" /></div>
+        <div class="pill-toggle" id="ct-forma-toggle">
+          <button type="button" data-forma="dinheiro" class="ativo">Dinheiro</button>
+          <button type="button" data-forma="pix">Pix</button>
+          <button type="button" data-forma="cartao">Cartão</button>
+        </div>
+        <div id="ct-erro"></div>
+        <div id="ct-sucesso"></div>
+        <button type="submit" class="btn full">Lançar</button>
+      </form>
+    </div>
+  `;
+}
+
+function attachFormularioContribuicaoHandlers() {
+  document.getElementById("btn-voltar").addEventListener("click", () => {
+    state.dizimistaSelecionado = null;
+    document.getElementById("conteudo").innerHTML = renderTesoureiro();
+    attachTesoureiroHandlers();
+  });
+
+  let formaSelecionada = "dinheiro";
+  document.querySelectorAll("#ct-forma-toggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      formaSelecionada = btn.dataset.forma;
+      document.querySelectorAll("#ct-forma-toggle button").forEach((b) => b.classList.toggle("ativo", b === btn));
+    });
+  });
+
+  document.getElementById("form-contribuicao").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroDiv = document.getElementById("ct-erro");
+    const sucessoDiv = document.getElementById("ct-sucesso");
+    erroDiv.innerHTML = "";
+    sucessoDiv.innerHTML = "";
+    const avulso = state.dizimistaSelecionado === "avulso";
+    const corpo = {
+      dizimista_id: avulso ? null : state.dizimistaSelecionado.id,
+      nome_avulso: avulso ? document.getElementById("ct-nome-avulso").value.trim() : null,
+      comunidade_id: state.usuario.comunidade_id,
+      valor: parseFloat(document.getElementById("ct-valor").value),
+      data_pagamento: document.getElementById("ct-data").value,
+      meses_referencia: document.getElementById("ct-meses").value.trim() || null,
+      forma_pagamento: formaSelecionada,
+    };
+    try {
+      await api("/contribuicoes", { method: "POST", body: corpo });
+      sucessoDiv.innerHTML = `<span class="carimbo">Lançado ✓</span>`;
+      document.getElementById("form-contribuicao").reset();
+    } catch (err) {
+      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    }
+  });
+}
+
+/* ---------- Aba Ofertório ---------- */
+function renderAbaOfertorio() {
+  return `
+    <div class="cartao">
+      <h2>Oferta de ofertório</h2>
+      <p class="muted">Coleta da missa — um lançamento por celebração.</p>
+      <form id="form-ofertorio">
+        <div class="campo"><label>Data da missa *</label><input type="date" id="of-data" value="${hojeISO()}" required /></div>
+        <div class="grid2">
+          <div class="campo"><label>Valor em dinheiro (R$)</label><input type="number" step="0.01" min="0" id="of-dinheiro" value="0" /></div>
+          <div class="campo"><label>Valor em Pix (R$)</label><input type="number" step="0.01" min="0" id="of-pix" value="0" /></div>
+        </div>
+        <div id="of-erro"></div>
+        <div id="of-sucesso"></div>
+        <button type="submit" class="btn full">Lançar</button>
+      </form>
+    </div>
+    <div class="cartao">
+      <h2>Últimos lançamentos</h2>
+      <div id="of-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarListaOfertorio() {
+  const container = document.getElementById("of-lista");
+  if (!container) return;
+  try {
+    const lista = await api("/ofertorio");
+    container.innerHTML = lista.length
+      ? lista
+          .slice(0, 10)
+          .map(
+            (o) => `
+        <div class="linha-lista">
+          <span>${o.data_missa.split("-").reverse().join("/")}</span>
+          <span class="mono">${fmtMoeda(o.valor_dinheiro)} + ${fmtMoeda(o.valor_pix)}</span>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Nenhum lançamento ainda.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachAbaOfertorioHandlers() {
+  carregarListaOfertorio();
+  document.getElementById("form-ofertorio").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroDiv = document.getElementById("of-erro");
+    const sucessoDiv = document.getElementById("of-sucesso");
+    erroDiv.innerHTML = "";
+    sucessoDiv.innerHTML = "";
+    const corpo = {
+      comunidade_id: state.usuario.comunidade_id,
+      data_missa: document.getElementById("of-data").value,
+      valor_dinheiro: parseFloat(document.getElementById("of-dinheiro").value || "0"),
+      valor_pix: parseFloat(document.getElementById("of-pix").value || "0"),
+    };
+    try {
+      await api("/ofertorio", { method: "POST", body: corpo });
+      sucessoDiv.innerHTML = `<span class="carimbo">Lançado ✓</span>`;
+      document.getElementById("form-ofertorio").reset();
+      document.getElementById("of-data").value = hojeISO();
+      carregarListaOfertorio();
+    } catch (err) {
+      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    }
+  });
+}
+
+/* ---------- Aba Aniversários (compartilhada tesoureiro/secretaria) ---------- */
+function renderAbaAniversarios(comTodasComunidades) {
+  return `
+    <div class="cartao">
+      <h2>Aniversariantes</h2>
+      <div class="pill-toggle" id="an-periodo-toggle">
+        <button type="button" data-periodo="semana" class="${state.periodoAniversario === "semana" ? "ativo" : ""}">Esta semana</button>
+        <button type="button" data-periodo="mes" class="${state.periodoAniversario === "mes" ? "ativo" : ""}">Este mês</button>
+      </div>
+      <div id="an-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarAniversariantes(comTodasComunidades) {
+  const container = document.getElementById("an-lista");
+  if (!container) return;
+  try {
+    const lista = await api("/dizimistas/aniversariantes?periodo=" + state.periodoAniversario);
+    container.innerHTML = lista.length
+      ? lista
+          .map(
+            (a) => `
+        <div class="linha-lista">
+          <span><span class="codigo mono">${escapeHtml(a.codigo || "—")}</span>${escapeHtml(a.nome)}${
+              comTodasComunidades ? ` <span class="muted">· ${escapeHtml(nomeComunidade(a.comunidade_id))}</span>` : ""
+            }</span>
+          <span class="tag-data">${a.data_nascimento.slice(5).split("-").reverse().join("/")}</span>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Ninguém faz aniversário nesse período.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachAbaAniversariosHandlers(comTodasComunidades) {
+  carregarAniversariantes(comTodasComunidades);
+  document.querySelectorAll("#an-periodo-toggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.periodoAniversario = btn.dataset.periodo;
+      document.querySelectorAll("#an-periodo-toggle button").forEach((b) => b.classList.toggle("ativo", b === btn));
+      carregarAniversariantes(comTodasComunidades);
+    });
+  });
+}
+
+/* =========================================================
+   VISÃO SECRETARIA / GESTÃO
+   ========================================================= */
+function renderNavSecretaria() {
+  const abas = [
+    ["consolidado", "Consolidado"],
+    ["balanco", "Balanço"],
+    ["lancamentos", "Lançamentos"],
+    ["cadastros", "Cadastros"],
+    ["aniversarios", "Aniversariantes"],
+    ["importacao", "Importar histórico"],
+  ];
+  return `<nav class="tabs">${abas
+    .map(([id, label]) => `<button data-aba="${id}" class="${state.abaSecretaria === id ? "ativo" : ""}">${label}</button>`)
+    .join("")}</nav>`;
+}
+
+function attachNavSecretaria() {
+  document.querySelectorAll("nav.tabs button[data-aba]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.abaSecretaria = btn.dataset.aba;
+      document.getElementById("conteudo").innerHTML = renderGestao();
+      attachGestaoHandlers();
+      document.querySelectorAll("nav.tabs button[data-aba]").forEach((b) => b.classList.toggle("ativo", b.dataset.aba === state.abaSecretaria));
+    });
+  });
+}
+
+function renderGestao() {
+  if (state.abaSecretaria === "consolidado") return renderConsolidado();
+  if (state.abaSecretaria === "balanco") return renderBalanco();
+  if (state.abaSecretaria === "lancamentos") return renderLancamentos();
+  if (state.abaSecretaria === "cadastros") return renderCadastros();
+  if (state.abaSecretaria === "aniversarios") return renderAbaAniversarios(true);
+  if (state.abaSecretaria === "importacao") return renderImportacao();
+  return "";
+}
+
+function attachGestaoHandlers() {
+  if (state.abaSecretaria === "consolidado") attachConsolidadoHandlers();
+  if (state.abaSecretaria === "balanco") attachBalancoHandlers();
+  if (state.abaSecretaria === "lancamentos") attachLancamentosHandlers();
+  if (state.abaSecretaria === "cadastros") attachCadastrosHandlers();
+  if (state.abaSecretaria === "aniversarios") attachAbaAniversariosHandlers(true);
+  if (state.abaSecretaria === "importacao") attachImportacaoHandlers();
+}
+
+/* ---------- Lançamentos detalhados (secretaria) ---------- */
+function renderLancamentos() {
+  return `
+    <div class="cartao">
+      <div class="campo" style="max-width:280px;">
+        <label>Comunidade</label>
+        <select id="lc-comunidade">
+          <option value="">Todas</option>
+          ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="cartao">
+      <h2>Contribuições de dízimo</h2>
+      <div id="lc-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarLancamentos() {
+  const container = document.getElementById("lc-lista");
+  if (!container) return;
+  const comunidadeId = document.getElementById("lc-comunidade").value;
+  const query = comunidadeId ? `?comunidade_id=${comunidadeId}` : "";
+  try {
+    const lista = await api("/contribuicoes" + query);
+    container.innerHTML = lista.length
+      ? lista.map((c) => renderLinhaContribuicao(c, !comunidadeId)).join("")
+      : `<div class="vazio">Nenhum lançamento encontrado.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachLancamentosHandlers() {
+  carregarLancamentos();
+  document.getElementById("lc-comunidade").addEventListener("change", carregarLancamentos);
+}
+
+/* ---------- Consolidado ---------- */
+function renderConsolidado() {
+  const meses = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  ];
+  const opcoesAno = [state.anoRelatorio - 1, state.anoRelatorio, state.anoRelatorio + 1];
+  return `
+    <div class="cartao">
+      <div class="grid2" style="max-width:340px;">
+        <div class="campo">
+          <label>Mês</label>
+          <select id="rel-mes">
+            ${meses.map((m, i) => `<option value="${i + 1}" ${i + 1 === state.mesRelatorio ? "selected" : ""}>${m}</option>`).join("")}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Ano</label>
+          <select id="rel-ano">
+            ${opcoesAno.map((a) => `<option value="${a}" ${a === state.anoRelatorio ? "selected" : ""}>${a}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="rel-conteudo">Carregando...</div>
+  `;
+}
+
+function renderConteudoRelatorio(dados) {
+  const linhas = dados.por_comunidade
+    .map(
+      (c) => `
+    <tr>
+      <td>${escapeHtml(c.comunidade_nome)}</td>
+      <td class="num">${fmtMoeda(c.total_dizimo_dinheiro)}</td>
+      <td class="num">${fmtMoeda(c.total_dizimo_pix)}</td>
+      <td class="num">${fmtMoeda(c.total_dizimo_cartao)}</td>
+      <td class="num">${fmtMoeda(c.total_ofertorio_dinheiro)}</td>
+      <td class="num">${fmtMoeda(c.total_ofertorio_pix)}</td>
+      <td class="num" style="font-weight:700;">${fmtMoeda(c.total_geral)}</td>
+    </tr>`
+    )
+    .join("");
+
+  const maiorTotal = Math.max(1, ...dados.por_comunidade.map((c) => Number(c.total_geral)));
+  const barras = dados.por_comunidade
+    .map((c) => {
+      const d = (Number(c.total_dizimo) / maiorTotal) * 100;
+      const oDin = (Number(c.total_ofertorio_dinheiro) / maiorTotal) * 100;
+      const oPix = (Number(c.total_ofertorio_pix) / maiorTotal) * 100;
+      return `
+        <div class="barra-linha">
+          <div class="barra-nome">${escapeHtml(c.comunidade_nome)}</div>
+          <div class="barra-trilha">
+            <div class="barra-segmento" style="width:${d}%; background:var(--dark);" title="Dízimo: ${fmtMoeda(c.total_dizimo)}"></div>
+            <div class="barra-segmento" style="width:${oDin}%; background:var(--brick);" title="Ofertório dinheiro: ${fmtMoeda(c.total_ofertorio_dinheiro)}"></div>
+            <div class="barra-segmento" style="width:${oPix}%; background:var(--gold);" title="Ofertório Pix: ${fmtMoeda(c.total_ofertorio_pix)}"></div>
+          </div>
+          <div class="barra-valor mono">${fmtMoeda(c.total_geral)}</div>
+        </div>`;
+    })
+    .join("");
+
+  return `
+    <div class="metricas">
+      <div class="metrica"><div class="label">Dízimo individual</div><div class="valor">${fmtMoeda(dados.total_dizimo)}</div></div>
+      <div class="metrica"><div class="label">Ofertório (dinheiro + Pix)</div><div class="valor">${fmtMoeda(
+        parseFloat(dados.total_ofertorio_dinheiro) + parseFloat(dados.total_ofertorio_pix)
+      )}</div></div>
+      <div class="metrica" style="border:1.5px solid var(--brick);"><div class="label">Total geral</div><div class="valor" style="color:var(--brick);">${fmtMoeda(
+        dados.total_geral
+      )}</div></div>
+    </div>
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Comparativo entre comunidades</h2>
+        <div class="legenda-cores">
+          <span><i style="background:var(--dark);"></i>Dízimo</span>
+          <span><i style="background:var(--brick);"></i>Ofertório dinheiro</span>
+          <span><i style="background:var(--gold);"></i>Ofertório Pix</span>
+        </div>
+      </div>
+      ${barras || '<div class="vazio">Sem lançamentos no período.</div>'}
+    </div>
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Por comunidade</h2>
+        <button class="btn outline small" id="btn-exportar-excel">Exportar Excel</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="relatorio">
+        <thead><tr><th>Comunidade</th><th>Dízimo dinheiro</th><th>Dízimo Pix</th><th>Dízimo cartão</th><th>Ofertório dinheiro</th><th>Ofertório Pix</th><th>Total</th></tr></thead>
+        <tbody>${linhas || '<tr><td colspan="7" class="vazio">Sem lançamentos no período.</td></tr>'}</tbody>
+      </table>
+      </div>
+    </div>
+  `;
+}
+
+async function exportarRelatorioExcel(btn) {
+  const textoOriginal = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Gerando...";
+  try {
+    const url = `${API_BASE}/relatorios/consolidado/exportar?ano=${state.anoRelatorio}&mes=${state.mesRelatorio}`;
+    const res = await fetch(url, { headers: { Authorization: "Bearer " + state.token } });
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    if (!res.ok) throw new Error("Não foi possível gerar o Excel (erro " + res.status + ")");
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = `relatorio-dizimo-${state.anoRelatorio}-${String(state.mesRelatorio).padStart(2, "0")}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
+}
+
+async function carregarRelatorio() {
+  const container = document.getElementById("rel-conteudo");
+  if (!container) return;
+  try {
+    const dados = await api(`/relatorios/consolidado?ano=${state.anoRelatorio}&mes=${state.mesRelatorio}`);
+    state.relatorio = dados;
+    container.innerHTML = renderConteudoRelatorio(dados);
+    const btnExportar = document.getElementById("btn-exportar-excel");
+    if (btnExportar) btnExportar.addEventListener("click", () => exportarRelatorioExcel(btnExportar));
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachConsolidadoHandlers() {
+  carregarRelatorio();
+  document.getElementById("rel-mes").addEventListener("change", (e) => {
+    state.mesRelatorio = Number(e.target.value);
+    carregarRelatorio();
+  });
+  document.getElementById("rel-ano").addEventListener("change", (e) => {
+    state.anoRelatorio = Number(e.target.value);
+    carregarRelatorio();
+  });
+}
+
+/* ---------- Balanço (série temporal semana/mês/ano) ---------- */
+const QTD_PADRAO_POR_GRANULARIDADE = { semana: 12, mes: 12, ano: 5 };
+
+function renderBalanco() {
+  return `
+    <div class="cartao">
+      <div class="grid2">
+        <div class="campo">
+          <label>Ver por</label>
+          <select id="bl-granularidade">
+            <option value="semana" ${state.balancoGranularidade === "semana" ? "selected" : ""}>Semana</option>
+            <option value="mes" ${state.balancoGranularidade === "mes" ? "selected" : ""}>Mês</option>
+            <option value="ano" ${state.balancoGranularidade === "ano" ? "selected" : ""}>Ano</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Comunidade</label>
+          <select id="bl-comunidade">
+            <option value="">Todas (soma geral)</option>
+            ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <h2 style="margin:0;">Balanço ao longo do tempo</h2>
+        <div class="legenda-cores">
+          <span><i style="background:var(--dark);"></i>Dízimo</span>
+          <span><i style="background:var(--gold);"></i>Ofertório</span>
+        </div>
+      </div>
+      <div id="bl-grafico">Carregando...</div>
+    </div>
+    <div class="cartao">
+      <h2>Detalhamento</h2>
+      <div id="bl-tabela"></div>
+    </div>
+  `;
+}
+
+async function carregarBalanco() {
+  const graficoDiv = document.getElementById("bl-grafico");
+  const tabelaDiv = document.getElementById("bl-tabela");
+  if (!graficoDiv) return;
+  const granularidade = document.getElementById("bl-granularidade").value;
+  const comunidadeId = document.getElementById("bl-comunidade").value;
+  const qtd = QTD_PADRAO_POR_GRANULARIDADE[granularidade] || 12;
+  const params = new URLSearchParams({ granularidade, periodos: qtd });
+  if (comunidadeId) params.set("comunidade_id", comunidadeId);
+
+  try {
+    const dados = await api("/relatorios/serie?" + params.toString());
+    const maior = Math.max(1, ...dados.periodos.map((p) => Number(p.total_geral)));
+
+    graficoDiv.innerHTML = `
+      <div class="serie-grafico">
+        ${dados.periodos
+          .map((p) => {
+            const alturaDizimo = Math.round((Number(p.total_dizimo) / maior) * 180);
+            const alturaOfertorio = Math.round((Number(p.total_ofertorio) / maior) * 180);
+            return `
+              <div class="serie-coluna">
+                <div class="serie-total">${Number(p.total_geral) > 0 ? fmtMoeda(p.total_geral).replace("R$", "").trim() : ""}</div>
+                <div class="serie-barra" style="height:${Math.max(alturaDizimo + alturaOfertorio, 2)}px;" title="${escapeHtml(p.label)}: ${fmtMoeda(p.total_geral)}">
+                  <div class="serie-segmento" style="height:${alturaOfertorio}px; background:var(--gold);"></div>
+                  <div class="serie-segmento" style="height:${alturaDizimo}px; background:var(--dark);"></div>
+                </div>
+                <div class="serie-label">${escapeHtml(p.label)}</div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
+
+    tabelaDiv.innerHTML = `
+      <div style="overflow-x:auto;">
+      <table class="relatorio">
+        <thead><tr><th>Período</th><th>Dízimo</th><th>Ofertório</th><th>Total</th></tr></thead>
+        <tbody>
+          ${dados.periodos
+            .map(
+              (p) => `
+            <tr>
+              <td>${escapeHtml(p.label)}</td>
+              <td class="num">${fmtMoeda(p.total_dizimo)}</td>
+              <td class="num">${fmtMoeda(p.total_ofertorio)}</td>
+              <td class="num" style="font-weight:700;">${fmtMoeda(p.total_geral)}</td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
+      </div>
+    `;
+  } catch (err) {
+    graficoDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachBalancoHandlers() {
+  carregarBalanco();
+  document.getElementById("bl-granularidade").addEventListener("change", () => {
+    state.balancoGranularidade = document.getElementById("bl-granularidade").value;
+    carregarBalanco();
+  });
+  document.getElementById("bl-comunidade").addEventListener("change", () => {
+    state.balancoComunidade = document.getElementById("bl-comunidade").value;
+    carregarBalanco();
+  });
+}
+
+/* ---------- Importação ---------- */
+function renderImportacao() {
+  return `
+    <div class="cartao">
+      <h2>Importar histórico em papel</h2>
+      <p class="muted">Envie o arquivo preenchido a partir do modelo <span class="mono">planilha-importacao-historico.xlsx</span>.</p>
+      <form id="form-importacao">
+        <div class="campo"><input type="file" id="imp-arquivo" accept=".xlsx" required /></div>
+        <div id="imp-erro"></div>
+        <button type="submit" class="btn full">Importar planilha</button>
+      </form>
+      <div id="imp-resultado"></div>
+    </div>
+  `;
+}
+
+function attachImportacaoHandlers() {
+  document.getElementById("form-importacao").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroDiv = document.getElementById("imp-erro");
+    const resultadoDiv = document.getElementById("imp-resultado");
+    erroDiv.innerHTML = "";
+    resultadoDiv.innerHTML = "";
+    const arquivo = document.getElementById("imp-arquivo").files[0];
+    if (!arquivo) return;
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    try {
+      const resultado = await api("/importacao/planilha", { method: "POST", body: formData });
+      resultadoDiv.innerHTML = `
+        <div class="sucesso">
+          Dizimistas criados: ${resultado.dizimistas_criados} · atualizados: ${resultado.dizimistas_atualizados}<br/>
+          Contribuições importadas: ${resultado.contribuicoes_importadas}<br/>
+          Ofertórios importados: ${resultado.ofertorios_importados}
+        </div>
+        ${
+          resultado.avisos.length
+            ? `<div class="cartao"><h2>Avisos (${resultado.avisos.length})</h2>${resultado.avisos
+                .map((a) => `<div class="linha-lista">${escapeHtml(a)}</div>`)
+                .join("")}</div>`
+            : ""
+        }
+      `;
+    } catch (err) {
+      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    }
+  });
+}
+
+/* ---------- Cadastros (dizimistas + usuários) ---------- */
+function renderCadastros() {
+  return `
+    <nav class="tabs" style="padding:0 0 14px;">
+      <button data-subaba="dizimistas" class="${state.abaCadastros === "dizimistas" ? "ativo" : ""}">Dizimistas</button>
+      <button data-subaba="usuarios" class="${state.abaCadastros === "usuarios" ? "ativo" : ""}">Tesoureiros / usuários</button>
+    </nav>
+    <div id="cadastros-conteudo">${state.abaCadastros === "dizimistas" ? renderCadastroDizimistas() : renderCadastroUsuarios()}</div>
+  `;
+}
+
+function attachCadastrosHandlers() {
+  document.querySelectorAll("nav.tabs button[data-subaba]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.abaCadastros = btn.dataset.subaba;
+      state.dizimistaEditandoId = null;
+      state.novoDizimistaAberto = false;
+      state.usuarioFormAberto = false;
+      state.usuarioEditandoId = null;
+      document.getElementById("conteudo").innerHTML = renderGestao();
+      attachGestaoHandlers();
+    });
+  });
+  if (state.abaCadastros === "dizimistas") attachCadastroDizimistasHandlers();
+  else attachCadastroUsuariosHandlers();
+}
+
+/* ----- Dizimistas (listar/editar) ----- */
+function renderCadastroDizimistas() {
+  if (state.dizimistaEditandoId) return `<div id="cd-form-wrap">Carregando...</div>`;
+  if (state.novoDizimistaAberto) {
+    return `
+      <div class="cartao">
+        <button class="link-sel" id="nd-voltar" style="margin-bottom:10px;">&larr; voltar à lista</button>
+        <h2>Novo dizimista</h2>
+        ${renderFormularioNovoDizimista(true)}
+      </div>
+    `;
+  }
+  return `
+    <div class="cartao">
+      <div class="grid2">
+        <div class="campo">
+          <label>Comunidade</label>
+          <select id="cd-comunidade">
+            <option value="">Todas</option>
+            ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Buscar</label>
+          <input type="text" id="cd-busca" placeholder="Nome ou código..." />
+        </div>
+      </div>
+    </div>
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Dizimistas</h2>
+        <button class="btn small" id="btn-novo-dizimista">+ Novo dizimista</button>
+      </div>
+      <div id="cd-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarCadastroDizimistas() {
+  const container = document.getElementById("cd-lista");
+  if (!container) return;
+  const comunidadeId = document.getElementById("cd-comunidade").value;
+  const busca = document.getElementById("cd-busca").value.trim();
+  const params = new URLSearchParams();
+  if (comunidadeId) params.set("comunidade_id", comunidadeId);
+  if (busca) params.set("busca", busca);
+  try {
+    const lista = await api("/dizimistas?" + params.toString());
+    container.innerHTML = lista.length
+      ? lista
+          .map(
+            (d) => `
+        <div class="linha-lista">
+          <span>
+            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${escapeHtml(d.nome)}
+            <span class="muted"> · ${escapeHtml(nomeComunidade(d.comunidade_id))}${d.status !== "ativo" ? " · " + escapeHtml(d.status) : ""}</span>
+          </span>
+          <button class="link-sel" data-id="${d.id}">editar</button>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Nenhum dizimista encontrado.</div>`;
+    container.querySelectorAll("button[data-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.dizimistaEditandoId = Number(btn.dataset.id);
+        document.getElementById("conteudo").innerHTML = renderGestao();
+        attachGestaoHandlers();
+      });
+    });
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachCadastroDizimistasHandlers() {
+  if (state.dizimistaEditandoId) {
+    carregarFormEdicaoDizimista();
+    return;
+  }
+  if (state.novoDizimistaAberto) {
+    document.getElementById("nd-voltar").addEventListener("click", () => {
+      state.novoDizimistaAberto = false;
+      document.getElementById("conteudo").innerHTML = renderGestao();
+      attachGestaoHandlers();
+    });
+    attachFormularioNovoDizimistaHandlers(null, () => {
+      state.novoDizimistaAberto = false;
+      document.getElementById("conteudo").innerHTML = renderGestao();
+      attachGestaoHandlers();
+    });
+    return;
+  }
+  carregarCadastroDizimistas();
+  document.getElementById("cd-comunidade").addEventListener("change", carregarCadastroDizimistas);
+  document.getElementById("btn-novo-dizimista").addEventListener("click", () => {
+    state.novoDizimistaAberto = true;
+    document.getElementById("conteudo").innerHTML = renderGestao();
+    attachGestaoHandlers();
+  });
+  let timeoutBusca;
+  document.getElementById("cd-busca").addEventListener("input", () => {
+    clearTimeout(timeoutBusca);
+    timeoutBusca = setTimeout(carregarCadastroDizimistas, 300);
+  });
+}
+
+async function carregarFormEdicaoDizimista() {
+  const wrap = document.getElementById("cd-form-wrap");
+  try {
+    const lista = await api("/dizimistas?busca=");
+    const dizimista = lista.find((d) => d.id === state.dizimistaEditandoId);
+    if (!dizimista) {
+      wrap.innerHTML = `<div class="erro">Dizimista não encontrado.</div>`;
+      return;
+    }
+    wrap.innerHTML = `
+      <div class="cartao">
+        <button class="link-sel" id="cd-voltar" style="margin-bottom:10px;">&larr; voltar à lista</button>
+        <h2>Editar dizimista</h2>
+        <form id="form-editar-dizimista">
+          <div class="grid2">
+            <div class="campo"><label>Código</label><input type="text" id="ed-codigo" value="${escapeHtml(dizimista.codigo || "")}" /></div>
+            <div class="campo"><label>Nome completo *</label><input type="text" id="ed-nome" value="${escapeHtml(dizimista.nome)}" required /></div>
+          </div>
+          <div class="grid2">
+            <div class="campo">
+              <label>Comunidade</label>
+              <select id="ed-comunidade">
+                ${state.comunidades.map((c) => `<option value="${c.id}" ${c.id === dizimista.comunidade_id ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join("")}
+              </select>
+            </div>
+            <div class="campo">
+              <label>Status</label>
+              <select id="ed-status">
+                ${["ativo", "inativo", "falecido"].map((s) => `<option value="${s}" ${s === dizimista.status ? "selected" : ""}>${s}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="campo"><label>Data de nascimento</label><input type="date" id="ed-nascimento" value="${dizimista.data_nascimento || ""}" /></div>
+            <div class="campo"><label>Telefone</label><input type="text" id="ed-telefone" value="${escapeHtml(dizimista.telefone || "")}" /></div>
+          </div>
+          <div class="campo"><label>Endereço</label><input type="text" id="ed-endereco" value="${escapeHtml(dizimista.endereco || "")}" /></div>
+          <div id="ed-erro"></div>
+          <div id="ed-sucesso"></div>
+          <button type="submit" class="btn full">Salvar alterações</button>
+        </form>
+        <button type="button" class="btn perigo full" id="ed-excluir" style="margin-top:10px;">Excluir dizimista</button>
+      </div>
+    `;
+    document.getElementById("cd-voltar").addEventListener("click", () => {
+      state.dizimistaEditandoId = null;
+      document.getElementById("conteudo").innerHTML = renderGestao();
+      attachGestaoHandlers();
+    });
+    document.getElementById("ed-excluir").addEventListener("click", async () => {
+      if (!confirm(`Excluir "${dizimista.nome}"? Essa ação não pode ser desfeita.`)) return;
+      const erroDiv = document.getElementById("ed-erro");
+      erroDiv.innerHTML = "";
+      try {
+        await api(`/dizimistas/${dizimista.id}`, { method: "DELETE" });
+        state.dizimistaEditandoId = null;
+        document.getElementById("conteudo").innerHTML = renderGestao();
+        attachGestaoHandlers();
+      } catch (err) {
+        erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+      }
+    });
+    document.getElementById("form-editar-dizimista").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const erroDiv = document.getElementById("ed-erro");
+      const sucessoDiv = document.getElementById("ed-sucesso");
+      erroDiv.innerHTML = "";
+      sucessoDiv.innerHTML = "";
+      const corpo = {
+        codigo: document.getElementById("ed-codigo").value.trim() || null,
+        nome: document.getElementById("ed-nome").value.trim(),
+        comunidade_id: Number(document.getElementById("ed-comunidade").value),
+        status: document.getElementById("ed-status").value,
+        data_nascimento: document.getElementById("ed-nascimento").value || null,
+        telefone: document.getElementById("ed-telefone").value.trim() || null,
+        endereco: document.getElementById("ed-endereco").value.trim() || null,
+      };
+      try {
+        await api(`/dizimistas/${dizimista.id}`, { method: "PATCH", body: corpo });
+        sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
+      } catch (err) {
+        erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+      }
+    });
+  } catch (err) {
+    wrap.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* ----- Usuários (tesoureiros + secretaria) ----- */
+function renderCadastroUsuarios() {
+  if (state.usuarioFormAberto || state.usuarioEditandoId) return `<div id="cu-form-wrap">Carregando...</div>`;
+  return `
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Usuários</h2>
+        <button class="btn small" id="btn-novo-usuario">+ Novo usuário</button>
+      </div>
+      <div id="cu-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarCadastroUsuarios() {
+  const container = document.getElementById("cu-lista");
+  if (!container) return;
+  try {
+    const lista = await api("/usuarios");
+    container.innerHTML = lista.length
+      ? lista
+          .map(
+            (u) => `
+        <div class="linha-lista">
+          <span>
+            ${escapeHtml(u.nome)}
+            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria/pároco" : escapeHtml(nomeComunidade(u.comunidade_id))}${!u.ativo ? " · inativo" : ""}</span>
+          </span>
+          <button class="link-sel" data-id="${u.id}">editar</button>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Nenhum usuário cadastrado.</div>`;
+    container.querySelectorAll("button[data-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.usuarioEditandoId = Number(btn.dataset.id);
+        document.getElementById("conteudo").innerHTML = renderGestao();
+        attachGestaoHandlers();
+      });
+    });
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachCadastroUsuariosHandlers() {
+  if (state.usuarioFormAberto) {
+    montarFormUsuario(null);
+    return;
+  }
+  if (state.usuarioEditandoId) {
+    carregarFormEdicaoUsuario();
+    return;
+  }
+  carregarCadastroUsuarios();
+  document.getElementById("btn-novo-usuario").addEventListener("click", () => {
+    state.usuarioFormAberto = true;
+    document.getElementById("conteudo").innerHTML = renderGestao();
+    attachGestaoHandlers();
+  });
+}
+
+function montarFormUsuario(usuarioExistente) {
+  const wrap = document.getElementById("cu-form-wrap");
+  const editando = !!usuarioExistente;
+  wrap.innerHTML = `
+    <div class="cartao">
+      <button class="link-sel" id="cu-voltar" style="margin-bottom:10px;">&larr; voltar à lista</button>
+      <h2>${editando ? "Editar usuário" : "Novo usuário"}</h2>
+      <form id="form-usuario">
+        <div class="campo"><label>Nome completo *</label><input type="text" id="cu-nome" value="${editando ? escapeHtml(usuarioExistente.nome) : ""}" required /></div>
+        <div class="grid2">
+          <div class="campo"><label>Login *</label><input type="text" id="cu-login" value="${editando ? escapeHtml(usuarioExistente.login) : ""}" ${editando ? "disabled" : ""} required /></div>
+          <div class="campo"><label>${editando ? "Nova senha (deixe em branco pra manter)" : "Senha *"}</label><input type="password" id="cu-senha" ${editando ? "" : "required"} /></div>
+        </div>
+        <div class="grid2">
+          <div class="campo">
+            <label>Perfil *</label>
+            <select id="cu-perfil" ${editando ? "disabled" : ""}>
+              <option value="tesoureiro" ${editando && usuarioExistente.perfil === "tesoureiro" ? "selected" : ""}>Tesoureiro</option>
+              <option value="secretaria" ${editando && usuarioExistente.perfil === "secretaria" ? "selected" : ""}>Secretaria / pároco</option>
+            </select>
+          </div>
+          <div class="campo" id="cu-campo-comunidade">
+            <label>Comunidade</label>
+            <select id="cu-comunidade">
+              ${state.comunidades.map((c) => `<option value="${c.id}" ${editando && c.id === usuarioExistente.comunidade_id ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        ${editando ? `<div class="campo"><label><input type="checkbox" id="cu-ativo" ${usuarioExistente.ativo ? "checked" : ""} style="width:auto; margin-right:6px;" />Usuário ativo</label></div>` : ""}
+        <div id="cu-erro"></div>
+        <div id="cu-sucesso"></div>
+        <button type="submit" class="btn full">${editando ? "Salvar alterações" : "Criar usuário"}</button>
+      </form>
+      ${editando ? `<button type="button" class="btn perigo full" id="cu-excluir" style="margin-top:10px;">Excluir usuário</button>` : ""}
+    </div>
+  `;
+
+  document.getElementById("cu-voltar").addEventListener("click", () => {
+    state.usuarioFormAberto = false;
+    state.usuarioEditandoId = null;
+    document.getElementById("conteudo").innerHTML = renderGestao();
+    attachGestaoHandlers();
+  });
+
+  if (editando) {
+    document.getElementById("cu-excluir").addEventListener("click", async () => {
+      if (!confirm(`Excluir o usuário "${usuarioExistente.nome}"? Essa ação não pode ser desfeita.`)) return;
+      const erroDiv = document.getElementById("cu-erro");
+      erroDiv.innerHTML = "";
+      try {
+        await api(`/usuarios/${usuarioExistente.id}`, { method: "DELETE" });
+        state.usuarioFormAberto = false;
+        state.usuarioEditandoId = null;
+        document.getElementById("conteudo").innerHTML = renderGestao();
+        attachGestaoHandlers();
+      } catch (err) {
+        erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+      }
+    });
+  }
+
+  const selectPerfil = document.getElementById("cu-perfil");
+  const campoComunidade = document.getElementById("cu-campo-comunidade");
+  function atualizarVisibilidadeComunidade() {
+    campoComunidade.style.display = selectPerfil.value === "tesoureiro" ? "" : "none";
+  }
+  atualizarVisibilidadeComunidade();
+  selectPerfil.addEventListener("change", atualizarVisibilidadeComunidade);
+
+  document.getElementById("form-usuario").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroDiv = document.getElementById("cu-erro");
+    const sucessoDiv = document.getElementById("cu-sucesso");
+    erroDiv.innerHTML = "";
+    sucessoDiv.innerHTML = "";
+    const perfil = selectPerfil.value;
+    const senha = document.getElementById("cu-senha").value;
+
+    try {
+      if (editando) {
+        const corpo = {
+          nome: document.getElementById("cu-nome").value.trim(),
+          ativo: document.getElementById("cu-ativo").checked,
+        };
+        if (perfil === "tesoureiro") corpo.comunidade_id = Number(document.getElementById("cu-comunidade").value);
+        if (senha) corpo.senha = senha;
+        await api(`/usuarios/${usuarioExistente.id}`, { method: "PATCH", body: corpo });
+        sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
+      } else {
+        const corpo = {
+          nome: document.getElementById("cu-nome").value.trim(),
+          login: document.getElementById("cu-login").value.trim(),
+          senha,
+          perfil,
+          comunidade_id: perfil === "tesoureiro" ? Number(document.getElementById("cu-comunidade").value) : null,
+        };
+        await api("/usuarios", { method: "POST", body: corpo });
+        sucessoDiv.innerHTML = `<span class="carimbo">Criado ✓</span>`;
+        document.getElementById("form-usuario").reset();
+      }
+    } catch (err) {
+      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    }
+  });
+}
+
+async function carregarFormEdicaoUsuario() {
+  const wrap = document.getElementById("cu-form-wrap");
+  try {
+    const lista = await api("/usuarios");
+    const usuario = lista.find((u) => u.id === state.usuarioEditandoId);
+    if (!usuario) {
+      wrap.innerHTML = `<div class="erro">Usuário não encontrado.</div>`;
+      return;
+    }
+    montarFormUsuario(usuario);
+  } catch (err) {
+    wrap.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* =========================================================
+   START
+   ========================================================= */
+init();
+</script>
+</body>
+</html>
