@@ -328,6 +328,9 @@ function renderLogin(erro) {
           </div>
           <button type="submit" class="btn full">Entrar</button>
         </form>
+        <p class="sub" style="margin-top:16px; margin-bottom:0;">
+          Dúvidas sobre seus dados pessoais? Fale conosco: (11) 5050-5716
+        </p>
       </div>
     </div>
   `;
@@ -379,6 +382,9 @@ function renderShell() {
       <button class="sair" id="btn-sair">Sair</button>
     </header>
     ${ehSecretaria ? renderNavSecretaria() + '<main id="conteudo">' + renderGestao() + "</main>" : renderNavTesoureiro() + '<main id="conteudo">' + renderTesoureiro() + "</main>"}
+    <footer style="text-align:center; padding:16px; font-size:11px; color:var(--muted);">
+      Dúvidas sobre o uso dos seus dados pessoais? Fale conosco: (11) 5050-5716
+    </footer>
   `;
 }
 
@@ -496,10 +502,12 @@ function renderLinhaContribuicao(c, comComunidade) {
 
 function renderFormularioNovoDizimista(comSeletorComunidade) {
   return `
+    <div id="nd-sessao-lista"></div>
     <form id="form-novo-dizimista">
-      <div class="grid2">
-        <div class="campo"><label>Código</label><input type="text" id="nd-codigo" /></div>
-        <div class="campo"><label>Nome completo *</label><input type="text" id="nd-nome" required /></div>
+      <div class="campo"><label>Nome completo *</label><input type="text" id="nd-nome" required /></div>
+      <div class="campo">
+        <label>CPF (opcional, mas evita cadastro duplicado da mesma pessoa)</label>
+        <input type="text" id="nd-cpf" placeholder="000.000.000-00" />
       </div>
       ${
         comSeletorComunidade
@@ -514,33 +522,129 @@ function renderFormularioNovoDizimista(comSeletorComunidade) {
         <div class="campo"><label>Data de nascimento</label><input type="date" id="nd-nascimento" /></div>
         <div class="campo"><label>Telefone</label><input type="text" id="nd-telefone" /></div>
       </div>
-      <div class="campo"><label>Endereço</label><input type="text" id="nd-endereco" /></div>
+      <div class="grid2">
+        <div class="campo"><label>CEP</label><input type="text" id="nd-cep" placeholder="00000-000" /></div>
+        <div class="campo"><label>Número</label><input type="text" id="nd-numero" /></div>
+      </div>
+      <div id="nd-cep-status" class="muted" style="margin:-6px 0 10px;"></div>
+      <div class="campo"><label>Endereço</label><input type="text" id="nd-endereco" placeholder="Preenchido automaticamente pelo CEP, ou digite direto" /></div>
       <div id="nd-erro"></div>
       <div id="nd-sucesso"></div>
       <button type="submit" class="btn full">Cadastrar dizimista</button>
     </form>
+    <button type="button" class="btn outline full" id="nd-concluir" style="margin-top:10px;">Concluir e voltar à lista</button>
   `;
 }
 
+async function buscarEnderecoPorCep(cepInputId, numeroInputId, enderecoInputId, statusId) {
+  const cepDigits = document.getElementById(cepInputId).value.replace(/\D/g, "");
+  const statusEl = document.getElementById(statusId);
+  if (cepDigits.length !== 8) {
+    statusEl.textContent = "";
+    return null;
+  }
+  statusEl.textContent = "Buscando endereço...";
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`);
+    const dados = await res.json();
+    if (dados.erro) {
+      statusEl.textContent = "CEP não encontrado — preencha o endereço manualmente.";
+      return null;
+    }
+    statusEl.textContent = `${dados.logradouro || ""}${dados.logradouro && dados.bairro ? " - " : ""}${dados.bairro || ""}, ${dados.localidade}/${dados.uf}`;
+    return dados;
+  } catch (e) {
+    statusEl.textContent = "Não foi possível buscar o CEP agora — preencha o endereço manualmente.";
+    return null;
+  }
+}
+
+function comporEndereco(dadosCep, numero, enderecoInputId) {
+  if (!dadosCep) return;
+  const partes = [];
+  if (dadosCep.logradouro) {
+    partes.push(dadosCep.logradouro + (numero ? ", nº " + numero : ""));
+  } else if (numero) {
+    partes.push("nº " + numero);
+  }
+  if (dadosCep.bairro) partes.push(dadosCep.bairro);
+  if (dadosCep.localidade) partes.push(dadosCep.localidade + (dadosCep.uf ? "/" + dadosCep.uf : ""));
+  document.getElementById(enderecoInputId).value = partes.join(" - ");
+}
+
+function ligarAutoPreenchimentoCep(prefixo) {
+  let ultimoCep = null;
+  let timeoutCep;
+  const cepInput = document.getElementById(`${prefixo}-cep`);
+  const numeroInput = document.getElementById(`${prefixo}-numero`);
+  if (!cepInput || !numeroInput) return;
+
+  cepInput.addEventListener("input", () => {
+    clearTimeout(timeoutCep);
+    timeoutCep = setTimeout(async () => {
+      ultimoCep = await buscarEnderecoPorCep(`${prefixo}-cep`, `${prefixo}-numero`, `${prefixo}-endereco`, `${prefixo}-cep-status`);
+      comporEndereco(ultimoCep, numeroInput.value.trim(), `${prefixo}-endereco`);
+    }, 500);
+  });
+  numeroInput.addEventListener("input", () => {
+    comporEndereco(ultimoCep, numeroInput.value.trim(), `${prefixo}-endereco`);
+  });
+}
+
 function attachFormularioNovoDizimistaHandlers(comunidadeIdFixo, aoSalvar) {
+  ligarAutoPreenchimentoCep("nd");
+  const cadastradosSessao = [];
+
+  function renderSessao() {
+    const div = document.getElementById("nd-sessao-lista");
+    if (!div) return;
+    if (cadastradosSessao.length === 0) {
+      div.innerHTML = "";
+      return;
+    }
+    div.innerHTML = `
+      <div class="cartao">
+        <h2>Cadastrados agora (${cadastradosSessao.length})</h2>
+        ${cadastradosSessao
+          .map(
+            (c) => `
+          <div class="linha-lista">
+            <span>${escapeHtml(c.nome)}</span>
+            <span class="codigo mono">${escapeHtml(c.codigo)}</span>
+          </div>`
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  document.getElementById("nd-concluir").addEventListener("click", aoSalvar);
+
   document.getElementById("form-novo-dizimista").addEventListener("submit", async (e) => {
     e.preventDefault();
     const erroDiv = document.getElementById("nd-erro");
     const sucessoDiv = document.getElementById("nd-sucesso");
     erroDiv.innerHTML = "";
-    if (sucessoDiv) sucessoDiv.innerHTML = "";
+    sucessoDiv.innerHTML = "";
     const comunidadeId = comunidadeIdFixo || Number(document.getElementById("nd-comunidade").value);
     const corpo = {
-      codigo: document.getElementById("nd-codigo").value.trim() || null,
       nome: document.getElementById("nd-nome").value.trim(),
+      cpf: document.getElementById("nd-cpf").value.trim() || null,
       comunidade_id: comunidadeId,
       data_nascimento: document.getElementById("nd-nascimento").value || null,
       telefone: document.getElementById("nd-telefone").value.trim() || null,
+      cep: document.getElementById("nd-cep").value.trim() || null,
       endereco: document.getElementById("nd-endereco").value.trim() || null,
     };
     try {
-      await api("/dizimistas", { method: "POST", body: corpo });
-      aoSalvar();
+      const resultado = await api("/dizimistas", { method: "POST", body: corpo });
+      cadastradosSessao.unshift({ nome: resultado.nome, codigo: resultado.codigo });
+      renderSessao();
+      sucessoDiv.innerHTML = `<span class="carimbo">Cadastrado ✓ — código ${escapeHtml(resultado.codigo)}</span>`;
+      document.getElementById("form-novo-dizimista").reset();
+      const statusCep = document.getElementById("nd-cep-status");
+      if (statusCep) statusCep.textContent = "";
+      document.getElementById("nd-nome").focus();
     } catch (err) {
       erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
     }
@@ -1204,8 +1308,15 @@ function renderCadastros() {
     <nav class="tabs" style="padding:0 0 14px;">
       <button data-subaba="dizimistas" class="${state.abaCadastros === "dizimistas" ? "ativo" : ""}">Dizimistas</button>
       <button data-subaba="usuarios" class="${state.abaCadastros === "usuarios" ? "ativo" : ""}">Tesoureiros / usuários</button>
+      <button data-subaba="comunidades" class="${state.abaCadastros === "comunidades" ? "ativo" : ""}">Comunidades</button>
     </nav>
-    <div id="cadastros-conteudo">${state.abaCadastros === "dizimistas" ? renderCadastroDizimistas() : renderCadastroUsuarios()}</div>
+    <div id="cadastros-conteudo">${
+      state.abaCadastros === "dizimistas"
+        ? renderCadastroDizimistas()
+        : state.abaCadastros === "usuarios"
+        ? renderCadastroUsuarios()
+        : renderCadastroComunidades()
+    }</div>
   `;
 }
 
@@ -1222,7 +1333,62 @@ function attachCadastrosHandlers() {
     });
   });
   if (state.abaCadastros === "dizimistas") attachCadastroDizimistasHandlers();
-  else attachCadastroUsuariosHandlers();
+  else if (state.abaCadastros === "usuarios") attachCadastroUsuariosHandlers();
+  else attachCadastroComunidadesHandlers();
+}
+
+/* ----- Comunidades (siglas usadas no código dos dizimistas) ----- */
+function renderCadastroComunidades() {
+  return `
+    <div class="cartao">
+      <h2>Siglas das comunidades</h2>
+      <p class="muted">Usada no código automático dos dizimistas (ex: SMA-0001). Trocar a sigla não muda os códigos já existentes, só os próximos cadastros — a não ser que "Renovar códigos" seja usado depois, na aba Dizimistas.</p>
+      <div id="cc-lista">Carregando...</div>
+    </div>
+  `;
+}
+
+async function carregarCadastroComunidades() {
+  const container = document.getElementById("cc-lista");
+  if (!container) return;
+  try {
+    const lista = await api("/comunidades");
+    container.innerHTML = lista
+      .map(
+        (c) => `
+      <div class="linha-lista" style="gap:10px;">
+        <span style="flex:1;">${escapeHtml(c.nome)}</span>
+        <input type="text" data-comunidade-id="${c.id}" class="cc-sigla-input" value="${escapeHtml(c.sigla || "")}" maxlength="5" style="width:80px; text-align:center; text-transform:uppercase; border:1px solid var(--cream-line); border-radius:6px; padding:6px;" />
+        <button class="link-sel" data-salvar-id="${c.id}">salvar</button>
+      </div>`
+      )
+      .join("");
+    container.querySelectorAll("button[data-salvar-id]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.salvarId;
+        const input = container.querySelector(`input[data-comunidade-id="${id}"]`);
+        const sigla = input.value.trim();
+        btn.disabled = true;
+        try {
+          await api(`/comunidades/${id}`, { method: "PATCH", body: { sigla } });
+          btn.textContent = "salvo ✓";
+          setTimeout(() => {
+            btn.textContent = "salvar";
+            btn.disabled = false;
+          }, 1500);
+        } catch (err) {
+          alert(err.message);
+          btn.disabled = false;
+        }
+      });
+    });
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachCadastroComunidadesHandlers() {
+  carregarCadastroComunidades();
 }
 
 /* ----- Dizimistas (listar/editar) ----- */
@@ -1254,13 +1420,84 @@ function renderCadastroDizimistas() {
       </div>
     </div>
     <div class="cartao">
+      <h2>Quantidade de dizimistas</h2>
+      <div id="cd-contagem" class="muted">Carregando...</div>
+    </div>
+    <div class="cartao">
+      <h2>Completude do cadastro</h2>
+      <div id="cd-completude" class="muted">Carregando...</div>
+    </div>
+    <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Dizimistas</h2>
         <button class="btn small" id="btn-novo-dizimista">+ Novo dizimista</button>
       </div>
       <div id="cd-lista">Carregando...</div>
     </div>
+    <div class="cartao">
+      <h2>Zona de risco</h2>
+      <p class="muted">Renumera o código de TODOS os dizimistas de todas as comunidades, do zero, sem lacunas. Use só se os códigos ficaram bagunçados (ex: depois de muitas exclusões). Isso não muda nome, CPF nem nenhum outro dado — só o código.</p>
+      <button type="button" class="btn perigo" id="btn-renovar-codigos">Renovar códigos de todos os dizimistas</button>
+      <div id="renovar-resultado" style="margin-top:10px;"></div>
+    </div>
   `;
+}
+
+async function carregarContagem() {
+  const container = document.getElementById("cd-contagem");
+  if (!container) return;
+  try {
+    const c = await api("/dizimistas/contagem");
+    const linhas = c.por_comunidade
+      .map(
+        (cc) => `
+        <div class="linha-lista">
+          <span>${escapeHtml(cc.comunidade_nome)}</span>
+          <span class="mono">${cc.ativos} ativos <span class="muted">/ ${cc.total} total</span></span>
+        </div>`
+      )
+      .join("");
+    container.innerHTML = `
+      <div style="font-size:20px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:var(--dark); margin-bottom:8px;">
+        ${c.ativos_geral} <span style="font-size:12px; font-weight:400; color:var(--muted);">ativos de ${c.total_geral} no total</span>
+      </div>
+      ${linhas || '<div class="vazio">Nenhum dizimista cadastrado ainda.</div>'}
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function carregarCompletude() {
+  const container = document.getElementById("cd-completude");
+  if (!container) return;
+  const comunidadeId = document.getElementById("cd-comunidade").value;
+  const query = comunidadeId ? `?comunidade_id=${comunidadeId}` : "";
+  try {
+    const c = await api("/dizimistas/completude" + query);
+    if (c.total === 0) {
+      container.innerHTML = "Nenhum dizimista cadastrado ainda.";
+      return;
+    }
+    const linha = (label, faltando) => {
+      const pct = Math.round((faltando / c.total) * 100);
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0;">
+          <span style="font-size:12.5px;">${label}</span>
+          <span class="mono" style="font-size:12px; color:${faltando > 0 ? "var(--brick)" : "var(--muted)"};">
+            ${faltando} de ${c.total} sem preencher (${pct}%)
+          </span>
+        </div>`;
+    };
+    container.innerHTML = `
+      ${linha("CPF", c.sem_cpf)}
+      ${linha("CEP", c.sem_cep)}
+      ${linha("Telefone", c.sem_telefone)}
+      ${linha("Data de nascimento", c.sem_data_nascimento)}
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
 }
 
 async function carregarCadastroDizimistas() {
@@ -1318,7 +1555,12 @@ function attachCadastroDizimistasHandlers() {
     return;
   }
   carregarCadastroDizimistas();
-  document.getElementById("cd-comunidade").addEventListener("change", carregarCadastroDizimistas);
+  carregarCompletude();
+  carregarContagem();
+  document.getElementById("cd-comunidade").addEventListener("change", () => {
+    carregarCadastroDizimistas();
+    carregarCompletude();
+  });
   document.getElementById("btn-novo-dizimista").addEventListener("click", () => {
     state.novoDizimistaAberto = true;
     document.getElementById("conteudo").innerHTML = renderGestao();
@@ -1328,6 +1570,32 @@ function attachCadastroDizimistasHandlers() {
   document.getElementById("cd-busca").addEventListener("input", () => {
     clearTimeout(timeoutBusca);
     timeoutBusca = setTimeout(carregarCadastroDizimistas, 300);
+  });
+  document.getElementById("btn-renovar-codigos").addEventListener("click", async () => {
+    if (
+      !confirm(
+        "Isso vai TROCAR o código de todos os dizimistas de todas as comunidades, renumerando do zero. Nomes, CPF e o resto dos dados não mudam — só o código. Essa ação não pode ser desfeita. Tem certeza?"
+      )
+    )
+      return;
+    const resultadoDiv = document.getElementById("renovar-resultado");
+    const btn = document.getElementById("btn-renovar-codigos");
+    btn.disabled = true;
+    resultadoDiv.innerHTML = "Renovando...";
+    try {
+      const resultado = await api("/dizimistas/renovar-codigos", { method: "POST" });
+      const linhasPorComunidade = Object.entries(resultado.por_comunidade)
+        .filter(([, qtd]) => qtd > 0)
+        .map(([nome, qtd]) => `<div class="linha-lista"><span>${escapeHtml(nome)}</span><span class="mono">${qtd}</span></div>`)
+        .join("");
+      resultadoDiv.innerHTML = `<div class="sucesso">${resultado.total_renovados} códigos renovados.</div>${linhasPorComunidade}`;
+      carregarCadastroDizimistas();
+      carregarContagem();
+    } catch (err) {
+      resultadoDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
   });
 }
 
@@ -1346,8 +1614,16 @@ async function carregarFormEdicaoDizimista() {
         <h2>Editar dizimista</h2>
         <form id="form-editar-dizimista">
           <div class="grid2">
-            <div class="campo"><label>Código</label><input type="text" id="ed-codigo" value="${escapeHtml(dizimista.codigo || "")}" /></div>
+            <div class="campo"><label>Código</label><div class="mono" style="padding:9px 10px; background:var(--cream); border:1px solid var(--cream-line); border-radius:8px; color:var(--dark-soft);">${escapeHtml(dizimista.codigo || "—")} <span class="muted" style="font-family:'Inter',sans-serif;">(gerado automaticamente)</span></div></div>
             <div class="campo"><label>Nome completo *</label><input type="text" id="ed-nome" value="${escapeHtml(dizimista.nome)}" required /></div>
+          </div>
+          <div class="campo">
+            <label>CPF</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="text" id="ed-cpf" value="" placeholder="${dizimista.cpf_mascarado || "não cadastrado"}" style="flex:1;" />
+              ${dizimista.cpf_mascarado ? `<button type="button" class="btn outline small" id="ed-revelar-cpf" style="white-space:nowrap;">Revelar</button>` : ""}
+            </div>
+            <div id="ed-cpf-revelado" class="muted" style="margin-top:4px;"></div>
           </div>
           <div class="grid2">
             <div class="campo">
@@ -1367,6 +1643,11 @@ async function carregarFormEdicaoDizimista() {
             <div class="campo"><label>Data de nascimento</label><input type="date" id="ed-nascimento" value="${dizimista.data_nascimento || ""}" /></div>
             <div class="campo"><label>Telefone</label><input type="text" id="ed-telefone" value="${escapeHtml(dizimista.telefone || "")}" /></div>
           </div>
+          <div class="grid2">
+            <div class="campo"><label>CEP</label><input type="text" id="ed-cep" value="${escapeHtml(dizimista.cep || "")}" placeholder="00000-000" /></div>
+            <div class="campo"><label>Número</label><input type="text" id="ed-numero" /></div>
+          </div>
+          <div id="ed-cep-status" class="muted" style="margin:-6px 0 10px;"></div>
           <div class="campo"><label>Endereço</label><input type="text" id="ed-endereco" value="${escapeHtml(dizimista.endereco || "")}" /></div>
           <div id="ed-erro"></div>
           <div id="ed-sucesso"></div>
@@ -1375,6 +1656,22 @@ async function carregarFormEdicaoDizimista() {
         <button type="button" class="btn perigo full" id="ed-excluir" style="margin-top:10px;">Excluir dizimista</button>
       </div>
     `;
+    ligarAutoPreenchimentoCep("ed");
+    if (dizimista.cpf_mascarado) {
+      document.getElementById("ed-revelar-cpf").addEventListener("click", async (e) => {
+        const btn = e.target;
+        const alvo = document.getElementById("ed-cpf-revelado");
+        btn.disabled = true;
+        try {
+          const resultado = await api(`/dizimistas/${dizimista.id}/cpf`);
+          alvo.textContent = `CPF completo: ${resultado.cpf}`;
+        } catch (err) {
+          alvo.innerHTML = `<span style="color:var(--brick);">${escapeHtml(err.message)}</span>`;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
     document.getElementById("cd-voltar").addEventListener("click", () => {
       state.dizimistaEditandoId = null;
       document.getElementById("conteudo").innerHTML = renderGestao();
@@ -1399,15 +1696,17 @@ async function carregarFormEdicaoDizimista() {
       const sucessoDiv = document.getElementById("ed-sucesso");
       erroDiv.innerHTML = "";
       sucessoDiv.innerHTML = "";
+      const cpfDigitado = document.getElementById("ed-cpf").value.trim();
       const corpo = {
-        codigo: document.getElementById("ed-codigo").value.trim() || null,
         nome: document.getElementById("ed-nome").value.trim(),
         comunidade_id: Number(document.getElementById("ed-comunidade").value),
         status: document.getElementById("ed-status").value,
         data_nascimento: document.getElementById("ed-nascimento").value || null,
         telefone: document.getElementById("ed-telefone").value.trim() || null,
+        cep: document.getElementById("ed-cep").value.trim() || null,
         endereco: document.getElementById("ed-endereco").value.trim() || null,
       };
+      if (cpfDigitado) corpo.cpf = cpfDigitado; // só manda se a secretaria digitou algo novo
       try {
         await api(`/dizimistas/${dizimista.id}`, { method: "PATCH", body: corpo });
         sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
