@@ -178,6 +178,13 @@
   .serie-segmento { width: 100%; }
   .serie-label { font-size: 9.5px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
   .serie-total { font-size: 9px; color: var(--dark-soft); font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; }
+
+  .comp-grafico { display: flex; align-items: flex-end; gap: 14px; height: 230px; overflow-x: auto; padding: 8px 4px 0; }
+  .comp-coluna { display: flex; flex-direction: column; align-items: center; min-width: 56px; height: 100%; justify-content: flex-end; }
+  .comp-barras { display: flex; align-items: flex-end; gap: 3px; }
+  .comp-barra { width: 16px; border-radius: 3px 3px 0 0; }
+  .comp-pct { font-size: 10px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
+  .comp-label { font-size: 9.5px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -214,6 +221,8 @@ const state = {
   usuarioEditandoId: null,
   balancoGranularidade: "mes",
   balancoComunidade: "",
+  estatisticasComunidade: "",
+  inadimplentesMeses: 3,
 };
 
 /* =========================================================
@@ -907,10 +916,10 @@ function renderNavSecretaria() {
   const abas = [
     ["consolidado", "Consolidado"],
     ["balanco", "Balanço"],
+    ["estatisticas", "Estatísticas"],
     ["lancamentos", "Lançamentos"],
     ["cadastros", "Cadastros"],
     ["aniversarios", "Aniversariantes"],
-    ["importacao", "Importar histórico"],
   ];
   return `<nav class="tabs">${abas
     .map(([id, label]) => `<button data-aba="${id}" class="${state.abaSecretaria === id ? "ativo" : ""}">${label}</button>`)
@@ -931,20 +940,20 @@ function attachNavSecretaria() {
 function renderGestao() {
   if (state.abaSecretaria === "consolidado") return renderConsolidado();
   if (state.abaSecretaria === "balanco") return renderBalanco();
+  if (state.abaSecretaria === "estatisticas") return renderEstatisticas();
   if (state.abaSecretaria === "lancamentos") return renderLancamentos();
   if (state.abaSecretaria === "cadastros") return renderCadastros();
   if (state.abaSecretaria === "aniversarios") return renderAbaAniversarios(true);
-  if (state.abaSecretaria === "importacao") return renderImportacao();
   return "";
 }
 
 function attachGestaoHandlers() {
   if (state.abaSecretaria === "consolidado") attachConsolidadoHandlers();
   if (state.abaSecretaria === "balanco") attachBalancoHandlers();
+  if (state.abaSecretaria === "estatisticas") attachEstatisticasHandlers();
   if (state.abaSecretaria === "lancamentos") attachLancamentosHandlers();
   if (state.abaSecretaria === "cadastros") attachCadastrosHandlers();
   if (state.abaSecretaria === "aniversarios") attachAbaAniversariosHandlers(true);
-  if (state.abaSecretaria === "importacao") attachImportacaoHandlers();
 }
 
 /* ---------- Lançamentos detalhados (secretaria) ---------- */
@@ -1073,7 +1082,10 @@ function renderConteudoRelatorio(dados) {
     <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Por comunidade</h2>
-        <button class="btn outline small" id="btn-exportar-excel">Exportar Excel</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn outline small" id="btn-exportar-balancete">Balancete (PDF)</button>
+          <button class="btn outline small" id="btn-exportar-excel">Exportar Excel</button>
+        </div>
       </div>
       <div style="overflow-x:auto;">
       <table class="relatorio">
@@ -1085,23 +1097,22 @@ function renderConteudoRelatorio(dados) {
   `;
 }
 
-async function exportarRelatorioExcel(btn) {
+async function baixarArquivoProtegido(btn, url, nomeArquivo, mensagemGerando) {
   const textoOriginal = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "Gerando...";
+  btn.textContent = mensagemGerando || "Gerando...";
   try {
-    const url = `${API_BASE}/relatorios/consolidado/exportar?ano=${state.anoRelatorio}&mes=${state.mesRelatorio}`;
     const res = await fetch(url, { headers: { Authorization: "Bearer " + state.token } });
     if (res.status === 401) {
       logout();
       return;
     }
-    if (!res.ok) throw new Error("Não foi possível gerar o Excel (erro " + res.status + ")");
+    if (!res.ok) throw new Error("Não foi possível gerar o arquivo (erro " + res.status + ")");
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = objectUrl;
-    a.download = `relatorio-dizimo-${state.anoRelatorio}-${String(state.mesRelatorio).padStart(2, "0")}.xlsx`;
+    a.download = nomeArquivo;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1114,6 +1125,18 @@ async function exportarRelatorioExcel(btn) {
   }
 }
 
+function exportarRelatorioExcel(btn) {
+  const url = `${API_BASE}/relatorios/consolidado/exportar?ano=${state.anoRelatorio}&mes=${state.mesRelatorio}`;
+  const nome = `relatorio-dizimo-${state.anoRelatorio}-${String(state.mesRelatorio).padStart(2, "0")}.xlsx`;
+  baixarArquivoProtegido(btn, url, nome);
+}
+
+function exportarBalancetePdf(btn) {
+  const url = `${API_BASE}/relatorios/balancete?ano=${state.anoRelatorio}&mes=${state.mesRelatorio}`;
+  const nome = `balancete-dizimo-${state.anoRelatorio}-${String(state.mesRelatorio).padStart(2, "0")}.pdf`;
+  baixarArquivoProtegido(btn, url, nome);
+}
+
 async function carregarRelatorio() {
   const container = document.getElementById("rel-conteudo");
   if (!container) return;
@@ -1123,6 +1146,8 @@ async function carregarRelatorio() {
     container.innerHTML = renderConteudoRelatorio(dados);
     const btnExportar = document.getElementById("btn-exportar-excel");
     if (btnExportar) btnExportar.addEventListener("click", () => exportarRelatorioExcel(btnExportar));
+    const btnBalancete = document.getElementById("btn-exportar-balancete");
+    if (btnBalancete) btnBalancete.addEventListener("click", () => exportarBalancetePdf(btnBalancete));
   } catch (err) {
     container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
   }
@@ -1140,30 +1165,39 @@ function attachConsolidadoHandlers() {
   });
 }
 
-/* ---------- Balanço (série temporal semana/mês/ano) ---------- */
-const QTD_PADRAO_POR_GRANULARIDADE = { semana: 12, mes: 12, ano: 5 };
+/* ---------- Balanço (tendência semanal, ou comparativo com ano anterior) ---------- */
+const QTD_PADRAO_TENDENCIA = { semana: 12 };
+const QTD_PADRAO_COMPARATIVO = { mes: 12, trimestre: 4, ano: 5 };
 
 function renderBalanco() {
+  const ehComparativo = state.balancoGranularidade !== "semana";
   return `
     <div class="cartao">
       <div class="grid2">
         <div class="campo">
           <label>Ver por</label>
           <select id="bl-granularidade">
-            <option value="semana" ${state.balancoGranularidade === "semana" ? "selected" : ""}>Semana</option>
-            <option value="mes" ${state.balancoGranularidade === "mes" ? "selected" : ""}>Mês</option>
-            <option value="ano" ${state.balancoGranularidade === "ano" ? "selected" : ""}>Ano</option>
+            <option value="semana" ${state.balancoGranularidade === "semana" ? "selected" : ""}>Semana (tendência)</option>
+            <option value="mes" ${state.balancoGranularidade === "mes" ? "selected" : ""}>Mensal (vs. ano anterior)</option>
+            <option value="trimestre" ${state.balancoGranularidade === "trimestre" ? "selected" : ""}>Trimestral (no ano)</option>
+            <option value="ano" ${state.balancoGranularidade === "ano" ? "selected" : ""}>Anual (vs. ano anterior)</option>
           </select>
         </div>
         <div class="campo">
           <label>Comunidade</label>
           <select id="bl-comunidade">
-            <option value="">Todas (soma geral)</option>
-            ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+            <option value="" ${!state.balancoComunidade ? "selected" : ""}>Todas (soma geral)</option>
+            ${state.comunidades.map((c) => `<option value="${c.id}" ${String(c.id) === state.balancoComunidade ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join("")}
           </select>
         </div>
       </div>
     </div>
+    ${ehComparativo ? _shellBalancoComparativo() : _shellBalancoTendencia()}
+  `;
+}
+
+function _shellBalancoTendencia() {
+  return `
     <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <h2 style="margin:0;">Balanço ao longo do tempo</h2>
@@ -1181,14 +1215,50 @@ function renderBalanco() {
   `;
 }
 
+function _shellBalancoComparativo() {
+  return `
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <h2 style="margin:0;">Comparativo com o mesmo período do ano anterior</h2>
+        <div class="legenda-cores">
+          <span><i style="background:var(--dark);"></i>Período atual</span>
+          <span><i style="background:var(--gold);"></i>Ano anterior</span>
+        </div>
+      </div>
+      <div id="bl-grafico">Carregando...</div>
+    </div>
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Detalhamento</h2>
+        <button class="btn outline small" id="btn-exportar-comparativo">Exportar Excel</button>
+      </div>
+      <div id="bl-tabela"></div>
+    </div>
+    <div class="cartao">
+      <h2>Entre comunidades <span class="muted" id="bl-entre-comunidades-periodo" style="font-weight:400;"></span></h2>
+      <p class="muted" style="margin-top:-6px;">Ranking do período mais recente, cada comunidade contra ela mesma no ano anterior.</p>
+      <div id="bl-entre-comunidades">Carregando...</div>
+    </div>
+  `;
+}
+
 async function carregarBalanco() {
+  const granularidade = document.getElementById("bl-granularidade").value;
+  if (granularidade === "semana") {
+    await carregarBalancoTendencia();
+  } else {
+    await carregarBalancoComparativo(granularidade);
+    await carregarEntreComunidades(granularidade);
+  }
+}
+
+async function carregarBalancoTendencia() {
   const graficoDiv = document.getElementById("bl-grafico");
   const tabelaDiv = document.getElementById("bl-tabela");
   if (!graficoDiv) return;
-  const granularidade = document.getElementById("bl-granularidade").value;
   const comunidadeId = document.getElementById("bl-comunidade").value;
-  const qtd = QTD_PADRAO_POR_GRANULARIDADE[granularidade] || 12;
-  const params = new URLSearchParams({ granularidade, periodos: qtd });
+  const qtd = QTD_PADRAO_TENDENCIA.semana;
+  const params = new URLSearchParams({ granularidade: "semana", periodos: qtd });
   if (comunidadeId) params.set("comunidade_id", comunidadeId);
 
   try {
@@ -1241,11 +1311,118 @@ async function carregarBalanco() {
   }
 }
 
+function _corVariacao(pct) {
+  if (pct === null || pct === undefined) return "var(--muted)";
+  return pct >= 0 ? "#2C6E63" : "var(--brick)";
+}
+
+function _textoVariacao(pct) {
+  if (pct === null || pct === undefined) return "—";
+  const seta = pct >= 0 ? "▲" : "▼";
+  const sinal = pct >= 0 ? "+" : "";
+  return `${seta} ${sinal}${pct.toFixed(1)}%`;
+}
+
+async function carregarBalancoComparativo(granularidade) {
+  const graficoDiv = document.getElementById("bl-grafico");
+  const tabelaDiv = document.getElementById("bl-tabela");
+  if (!graficoDiv) return;
+  const comunidadeId = document.getElementById("bl-comunidade").value;
+  const qtd = QTD_PADRAO_COMPARATIVO[granularidade];
+  const params = new URLSearchParams({ granularidade, periodos: qtd });
+  if (comunidadeId) params.set("comunidade_id", comunidadeId);
+
+  try {
+    const dados = await api("/relatorios/comparativo-periodo?" + params.toString());
+    const maior = Math.max(1, ...dados.periodos.flatMap((p) => [Number(p.total), Number(p.total_ano_anterior)]));
+
+    graficoDiv.innerHTML = `
+      <div class="comp-grafico">
+        ${dados.periodos
+          .map((p) => {
+            const alturaAtual = Math.round((Number(p.total) / maior) * 180);
+            const alturaAnterior = Math.round((Number(p.total_ano_anterior) / maior) * 180);
+            return `
+              <div class="comp-coluna">
+                <div class="comp-pct" style="color:${_corVariacao(p.variacao_percentual)};">${_textoVariacao(p.variacao_percentual)}</div>
+                <div class="comp-barras">
+                  <div class="comp-barra" style="height:${Math.max(alturaAtual, 2)}px; background:var(--dark);" title="${escapeHtml(p.label)}: ${fmtMoeda(p.total)}"></div>
+                  <div class="comp-barra" style="height:${Math.max(alturaAnterior, 2)}px; background:var(--gold);" title="Ano anterior: ${fmtMoeda(p.total_ano_anterior)}"></div>
+                </div>
+                <div class="comp-label">${escapeHtml(p.label)}</div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
+
+    tabelaDiv.innerHTML = `
+      <div style="overflow-x:auto;">
+      <table class="relatorio">
+        <thead><tr><th>Período</th><th>Atual</th><th>Ano anterior</th><th>Variação</th></tr></thead>
+        <tbody>
+          ${dados.periodos
+            .map(
+              (p) => `
+            <tr>
+              <td>${escapeHtml(p.label)}</td>
+              <td class="num">${fmtMoeda(p.total)}</td>
+              <td class="num">${fmtMoeda(p.total_ano_anterior)}</td>
+              <td class="num" style="font-weight:700; color:${_corVariacao(p.variacao_percentual)};">${_textoVariacao(p.variacao_percentual)}</td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
+      </div>
+    `;
+
+    const btnExportar = document.getElementById("btn-exportar-comparativo");
+    if (btnExportar) {
+      btnExportar.onclick = () => {
+        const url =
+          `${API_BASE}/relatorios/comparativo-periodo/exportar?granularidade=${granularidade}&periodos=${qtd}` +
+          (comunidadeId ? `&comunidade_id=${comunidadeId}` : "");
+        baixarArquivoProtegido(btnExportar, url, `balanco-comparativo-${granularidade}.xlsx`);
+      };
+    }
+  } catch (err) {
+    graficoDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function carregarEntreComunidades(granularidade) {
+  const container = document.getElementById("bl-entre-comunidades");
+  const periodoLabel = document.getElementById("bl-entre-comunidades-periodo");
+  if (!container) return;
+  try {
+    const dados = await api("/relatorios/comparativo-comunidades?granularidade=" + granularidade);
+    if (periodoLabel) periodoLabel.textContent = "· " + dados.label;
+    const maior = Math.max(1, ...dados.comunidades.map((c) => Number(c.total)));
+    container.innerHTML = dados.comunidades
+      .map((c) => {
+        const largura = Math.round((Number(c.total) / maior) * 100);
+        return `
+          <div class="barra-linha">
+            <div class="barra-nome">${escapeHtml(c.comunidade_nome)}</div>
+            <div class="barra-trilha"><div class="barra-segmento" style="width:${largura}%; background:var(--dark);"></div></div>
+            <div class="barra-valor">${fmtMoeda(c.total)} <span style="color:${_corVariacao(c.variacao_percentual)};">${_textoVariacao(c.variacao_percentual)}</span></div>
+          </div>
+        `;
+      })
+      .join("");
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
 function attachBalancoHandlers() {
   carregarBalanco();
   document.getElementById("bl-granularidade").addEventListener("change", () => {
     state.balancoGranularidade = document.getElementById("bl-granularidade").value;
-    carregarBalanco();
+    document.getElementById("conteudo").innerHTML = renderGestao();
+    attachGestaoHandlers();
   });
   document.getElementById("bl-comunidade").addEventListener("change", () => {
     state.balancoComunidade = document.getElementById("bl-comunidade").value;
@@ -1253,52 +1430,134 @@ function attachBalancoHandlers() {
   });
 }
 
-/* ---------- Importação ---------- */
-function renderImportacao() {
+/* ---------- Estatísticas (adesão, média, comparativo, inadimplência) ---------- */
+function renderEstatisticas() {
   return `
     <div class="cartao">
-      <h2>Importar histórico em papel</h2>
-      <p class="muted">Envie o arquivo preenchido a partir do modelo <span class="mono">planilha-importacao-historico.xlsx</span>.</p>
-      <form id="form-importacao">
-        <div class="campo"><input type="file" id="imp-arquivo" accept=".xlsx" required /></div>
-        <div id="imp-erro"></div>
-        <button type="submit" class="btn full">Importar planilha</button>
-      </form>
-      <div id="imp-resultado"></div>
+      <div class="campo" style="max-width:320px;">
+        <label>Comunidade</label>
+        <select id="est-comunidade">
+          <option value="">Todas (soma geral)</option>
+          ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div id="est-metricas" class="metricas">Carregando...</div>
+    <div class="cartao">
+      <h2>Comparativo entre períodos</h2>
+      <div id="est-comparativo" class="muted">Carregando...</div>
+    </div>
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Inadimplentes</h2>
+        <select id="est-meses-inadimplente" style="width:auto; padding:6px 10px; border:1px solid var(--cream-line); border-radius:8px;">
+          <option value="1">Sem contribuir há 1 mês+</option>
+          <option value="2">Sem contribuir há 2 meses+</option>
+          <option value="3" selected>Sem contribuir há 3 meses+</option>
+          <option value="6">Sem contribuir há 6 meses+</option>
+        </select>
+      </div>
+      <div id="est-inadimplentes">Carregando...</div>
     </div>
   `;
 }
 
-function attachImportacaoHandlers() {
-  document.getElementById("form-importacao").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const erroDiv = document.getElementById("imp-erro");
-    const resultadoDiv = document.getElementById("imp-resultado");
-    erroDiv.innerHTML = "";
-    resultadoDiv.innerHTML = "";
-    const arquivo = document.getElementById("imp-arquivo").files[0];
-    if (!arquivo) return;
-    const formData = new FormData();
-    formData.append("arquivo", arquivo);
-    try {
-      const resultado = await api("/importacao/planilha", { method: "POST", body: formData });
-      resultadoDiv.innerHTML = `
-        <div class="sucesso">
-          Dizimistas criados: ${resultado.dizimistas_criados} · atualizados: ${resultado.dizimistas_atualizados}<br/>
-          Contribuições importadas: ${resultado.contribuicoes_importadas}<br/>
-          Ofertórios importados: ${resultado.ofertorios_importados}
-        </div>
-        ${
-          resultado.avisos.length
-            ? `<div class="cartao"><h2>Avisos (${resultado.avisos.length})</h2>${resultado.avisos
-                .map((a) => `<div class="linha-lista">${escapeHtml(a)}</div>`)
-                .join("")}</div>`
-            : ""
-        }
-      `;
-    } catch (err) {
-      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
-    }
+function _setaVariacao(pct) {
+  if (pct === null || pct === undefined) return `<span class="muted">sem base de comparação</span>`;
+  const cor = pct > 0 ? "#2C6E63" : pct < 0 ? "var(--brick)" : "var(--muted)";
+  const seta = pct > 0 ? "▲" : pct < 0 ? "▼" : "—";
+  return `<span style="color:${cor}; font-weight:700;">${seta} ${Math.abs(pct).toFixed(1)}%</span>`;
+}
+
+async function carregarEstatisticas() {
+  const metricasDiv = document.getElementById("est-metricas");
+  const comparativoDiv = document.getElementById("est-comparativo");
+  if (!metricasDiv) return;
+  const comunidadeId = document.getElementById("est-comunidade").value;
+  const query = comunidadeId ? `?comunidade_id=${comunidadeId}` : "";
+
+  try {
+    const est = await api("/dizimistas/estatisticas" + query);
+    metricasDiv.innerHTML = `
+      <div class="metrica">
+        <div class="label">Taxa de adesão (mês atual)</div>
+        <div class="valor">${est.taxa_adesao}%</div>
+        <div class="muted" style="font-size:11px; margin-top:4px;">${est.dizimistas_que_contribuiram} de ${est.total_dizimistas_ativos} ativos contribuíram</div>
+      </div>
+      <div class="metrica">
+        <div class="label">Média por contribuinte</div>
+        <div class="valor">${fmtMoeda(est.media_contribuicao)}</div>
+        <div class="muted" style="font-size:11px; margin-top:4px;">no mês atual</div>
+      </div>
+      <div class="metrica">
+        <div class="label">Total arrecadado (dízimo, mês atual)</div>
+        <div class="valor">${fmtMoeda(est.total_arrecadado)}</div>
+      </div>
+    `;
+  } catch (err) {
+    metricasDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+
+  try {
+    const comp = await api("/relatorios/comparativo" + query);
+    comparativoDiv.innerHTML = `
+      <div class="linha-lista">
+        <span>${escapeHtml(comp.mensal.atual.label)} <span class="muted">vs ${escapeHtml(comp.mensal.anterior.label)}</span></span>
+        <span class="mono">${fmtMoeda(comp.mensal.atual.total)} ${_setaVariacao(comp.mensal.variacao_percentual)}</span>
+      </div>
+      <div class="linha-lista">
+        <span>${escapeHtml(comp.anual.atual.label)} <span class="muted">vs ${escapeHtml(comp.anual.anterior.label)}</span></span>
+        <span class="mono">${fmtMoeda(comp.anual.atual.total)} ${_setaVariacao(comp.anual.variacao_percentual)}</span>
+      </div>
+    `;
+  } catch (err) {
+    comparativoDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function carregarInadimplentes() {
+  const container = document.getElementById("est-inadimplentes");
+  if (!container) return;
+  const comunidadeId = document.getElementById("est-comunidade").value;
+  const meses = document.getElementById("est-meses-inadimplente").value;
+  const params = new URLSearchParams({ meses_sem_contribuir: meses });
+  if (comunidadeId) params.set("comunidade_id", comunidadeId);
+
+  try {
+    const lista = await api("/dizimistas/inadimplentes?" + params.toString());
+    container.innerHTML = lista.length
+      ? lista
+          .map(
+            (d) => `
+        <div class="linha-lista">
+          <span>
+            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${escapeHtml(d.nome)}
+            ${!comunidadeId ? `<span class="muted"> · ${escapeHtml(d.comunidade_nome)}</span>` : ""}
+          </span>
+          <span class="muted" style="font-size:12px;">
+            ${d.ultima_contribuicao ? "última: " + d.ultima_contribuicao.split("-").reverse().join("/") : "nunca contribuiu"}
+          </span>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Ninguém nessa situação — todos os ativos contribuíram dentro do prazo.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachEstatisticasHandlers() {
+  carregarEstatisticas();
+  carregarInadimplentes();
+  document.getElementById("est-comunidade").addEventListener("change", () => {
+    state.estatisticasComunidade = document.getElementById("est-comunidade").value;
+    carregarEstatisticas();
+    carregarInadimplentes();
+  });
+  document.getElementById("est-meses-inadimplente").value = String(state.inadimplentesMeses);
+  document.getElementById("est-meses-inadimplente").addEventListener("change", () => {
+    state.inadimplentesMeses = document.getElementById("est-meses-inadimplente").value;
+    carregarInadimplentes();
   });
 }
 
@@ -1428,6 +1687,24 @@ function renderCadastroDizimistas() {
       <div id="cd-completude" class="muted">Carregando...</div>
     </div>
     <div class="cartao">
+      <h2>Etiquetas para carteirinha</h2>
+      <p class="muted">Gera um PDF com nome, código e comunidade de cada dizimista, no formato da folha adesiva Pimaco 6180 (30 por folha) — pronto pra imprimir e colar nas carteirinhas.</p>
+      <div class="grid2">
+        <div class="campo">
+          <label>Comunidade</label>
+          <select id="et-comunidade">
+            <option value="">Selecione uma comunidade...</option>
+            ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="campo">
+          <label><input type="checkbox" id="et-apenas-ativos" checked style="width:auto; margin-right:6px;" />Só dizimistas ativos</label>
+        </div>
+      </div>
+      <button type="button" class="btn full" id="btn-gerar-etiquetas">Gerar PDF de etiquetas</button>
+      <div id="et-erro" style="margin-top:10px;"></div>
+    </div>
+    <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Dizimistas</h2>
         <button class="btn small" id="btn-novo-dizimista">+ Novo dizimista</button>
@@ -1441,6 +1718,46 @@ function renderCadastroDizimistas() {
       <div id="renovar-resultado" style="margin-top:10px;"></div>
     </div>
   `;
+}
+
+async function gerarEtiquetasPdf(btn) {
+  const erroDiv = document.getElementById("et-erro");
+  erroDiv.innerHTML = "";
+  const comunidadeId = document.getElementById("et-comunidade").value;
+  if (!comunidadeId) {
+    erroDiv.innerHTML = `<div class="erro">Escolha uma comunidade primeiro.</div>`;
+    return;
+  }
+  const apenasAtivos = document.getElementById("et-apenas-ativos").checked;
+  const textoOriginal = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Gerando...";
+  try {
+    const url = `${API_BASE}/dizimistas/etiquetas?comunidade_id=${comunidadeId}&apenas_ativos=${apenasAtivos}`;
+    const res = await fetch(url, { headers: { Authorization: "Bearer " + state.token } });
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    if (!res.ok) {
+      const corpo = await res.json().catch(() => ({}));
+      throw new Error(corpo.detail || "Não foi possível gerar as etiquetas (erro " + res.status + ")");
+    }
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = "etiquetas.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch (err) {
+    erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
 }
 
 async function carregarContagem() {
@@ -1571,6 +1888,7 @@ function attachCadastroDizimistasHandlers() {
     clearTimeout(timeoutBusca);
     timeoutBusca = setTimeout(carregarCadastroDizimistas, 300);
   });
+  document.getElementById("btn-gerar-etiquetas").addEventListener("click", (e) => gerarEtiquetasPdf(e.target));
   document.getElementById("btn-renovar-codigos").addEventListener("click", async () => {
     if (
       !confirm(
