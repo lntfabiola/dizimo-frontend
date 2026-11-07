@@ -491,6 +491,8 @@ const state = {
   usuario: null,
   comunidades: [],
   abaTesoureiro: "dizimo",
+  // agente não tem comunidade fixa: escolhe em qual está lançando (lembrado entre sessões)
+  comunidadeAgente: (() => { try { return localStorage.getItem("dizimo_comunidade_agente") || ""; } catch (e) { return ""; } })(),
   periodoAniversario: "semana",
   dizimistaSelecionado: null,
   buscaDizimista: "",
@@ -785,9 +787,27 @@ function nomeComunidade(id) {
   return c ? c.nome : "";
 }
 
+function ehAgente() {
+  return state.usuario && state.usuario.perfil === "agente";
+}
+
+/* Comunidade em que o dinheiro está sendo recebido agora: a do tesoureiro,
+   ou a que o agente escolheu (null enquanto ele não escolher). */
+function comunidadeDeLancamento() {
+  if (ehAgente()) {
+    const id = Number(state.comunidadeAgente);
+    return state.comunidades.some((c) => c.id === id) ? id : null;
+  }
+  return state.usuario.comunidade_id;
+}
+
 function renderShell() {
   const ehSecretaria = state.usuario.perfil === "secretaria";
-  const subtitulo = ehSecretaria ? "secretaria / pároco" : nomeComunidade(state.usuario.comunidade_id);
+  const subtitulo = ehSecretaria
+    ? "secretaria / pároco"
+    : ehAgente()
+      ? "agente"
+      : nomeComunidade(state.usuario.comunidade_id);
 
   return `
     <header class="topbar">
@@ -832,10 +852,17 @@ function attachShellHandlers() {
    VISÃO TESOUREIRO
    ========================================================= */
 function renderNavTesoureiro() {
+  if (ehAgente()) return ""; // agente só tem a tela de cadastrar/lançar, sem abas
   const abas = [
     ["dizimo", "Dízimo"],
     ["ofertorio", "Ofertório"],
     ["aniversarios", "Aniversários"],
+    // relatórios da própria comunidade (o backend já limita os dados à comunidade do tesoureiro)
+    ["consolidado", "Consolidado"],
+    ["balanco", "Balanço"],
+    ["estatisticas", "Estatísticas"],
+    ["lancamentos", "Lançamentos"],
+    ["etiquetas", "Etiquetas"],
   ];
   return `<nav class="tabs">${abas
     .map(([id, label]) => `<button data-aba="${id}" class="${state.abaTesoureiro === id ? "ativo" : ""}">${label}</button>`)
@@ -858,13 +885,60 @@ function renderTesoureiro() {
   if (state.abaTesoureiro === "dizimo") return renderAbaDizimo();
   if (state.abaTesoureiro === "ofertorio") return renderAbaOfertorio();
   if (state.abaTesoureiro === "aniversarios") return renderAbaAniversarios(false);
+  if (state.abaTesoureiro === "consolidado") return renderConsolidado();
+  if (state.abaTesoureiro === "balanco") return renderBalanco();
+  if (state.abaTesoureiro === "estatisticas") return renderEstatisticas();
+  if (state.abaTesoureiro === "lancamentos") return renderLancamentos();
+  if (state.abaTesoureiro === "etiquetas") return renderAbaEtiquetasTesoureiro();
   return "";
 }
 
+/* As telas de relatório são as mesmas da secretaria, que tem um seletor de
+   comunidade ("Todas", etc.). Pro tesoureiro o seletor some e fica fixo na
+   comunidade dele (o backend também força isso, então não dá pra burlar). */
+function fixarSeletoresNaComunidadeDoTesoureiro() {
+  ["bl-comunidade", "est-comunidade", "lc-comunidade", "rd-comunidade", "et-comunidade"].forEach((id) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.value = String(state.usuario.comunidade_id);
+    const campo = sel.closest(".campo");
+    if (campo) campo.style.display = "none";
+  });
+  // "separar por comunidade" não faz sentido pra quem só tem uma comunidade
+  const sep = document.getElementById("est-separar-comunidade");
+  if (sep && sep.closest("label")) sep.closest("label").style.display = "none";
+}
+
+function renderAbaEtiquetasTesoureiro() {
+  return `
+    <div class="cartao">
+      <h2>Etiquetas dos dizimistas</h2>
+      <p class="muted">PDF com as etiquetas de ${escapeHtml(nomeComunidade(state.usuario.comunidade_id))} (paróquia, arquidiocese, ano, número, nome e comunidade), no formato da folha adesiva Pimaco 6180 — 30 por folha.</p>
+      <div class="campo" style="display:none;"><select id="et-comunidade"><option value="${state.usuario.comunidade_id}" selected></option></select></div>
+      <div class="campo">
+        <label><input type="checkbox" id="et-apenas-ativos" checked style="width:auto; margin-right:6px;" />Só dizimistas ativos</label>
+      </div>
+      <button type="button" class="btn full" id="btn-gerar-etiquetas">Gerar PDF de etiquetas</button>
+      <div id="et-erro" style="margin-top:10px;"></div>
+    </div>`;
+}
+
 function attachTesoureiroHandlers() {
-  if (state.abaTesoureiro === "dizimo") attachAbaDizimoHandlers();
-  if (state.abaTesoureiro === "ofertorio") attachAbaOfertorioHandlers();
-  if (state.abaTesoureiro === "aniversarios") attachAbaAniversariosHandlers(false);
+  const aba = state.abaTesoureiro;
+  if (["balanco", "estatisticas", "lancamentos", "consolidado"].includes(aba)) fixarSeletoresNaComunidadeDoTesoureiro();
+  if (aba === "dizimo") {
+    attachAbaDizimoHandlers();
+    fixarSeletoresNaComunidadeDoTesoureiro(); // card "Resumo do dia"
+  }
+  if (aba === "ofertorio") attachAbaOfertorioHandlers();
+  if (aba === "aniversarios") attachAbaAniversariosHandlers(false);
+  if (aba === "consolidado") attachConsolidadoHandlers();
+  if (aba === "balanco") attachBalancoHandlers();
+  if (aba === "estatisticas") attachEstatisticasHandlers();
+  if (aba === "lancamentos") attachLancamentosHandlers();
+  if (aba === "etiquetas") {
+    document.getElementById("btn-gerar-etiquetas").addEventListener("click", (e) => gerarEtiquetasPdf(e.target));
+  }
 }
 
 /* ---------- Aba Dízimo ---------- */
@@ -876,6 +950,7 @@ function renderAbaDizimo() {
     return renderFormularioContribuicao(state.dizimistaSelecionado, false);
   }
   return `
+    ${ehAgente() ? renderSeletorComunidadeAgente() : ""}
     <div class="cartao">
       <h2>Buscar dizimista</h2>
       <div class="campo">
@@ -886,14 +961,42 @@ function renderAbaDizimo() {
     </div>
     <div class="cartao">
       <h2>Novo dizimista</h2>
-      ${renderFormularioNovoDizimista()}
+      ${renderFormularioNovoDizimista(ehAgente())}
     </div>
     <div class="cartao">
-      <h2>Últimos lançamentos de dízimo</h2>
+      <h2>${ehAgente() ? "Meus últimos lançamentos de dízimo" : "Últimos lançamentos de dízimo"}</h2>
       <div id="dz-lista">Carregando...</div>
     </div>
-    ${renderCartaoResumoDia(false)}
+    ${ehAgente() ? "" : renderCartaoResumoDia(false)}
   `;
+}
+
+/* Agente não pertence a uma comunidade: escolhe onde está recebendo o dízimo.
+   O lançamento fica registrado na comunidade escolhida. */
+function renderSeletorComunidadeAgente() {
+  const atual = comunidadeDeLancamento();
+  return `
+    <div class="cartao" style="${atual ? "" : "border:1.5px solid var(--brick);"}">
+      <div class="campo" style="margin:0;">
+        <label>Comunidade onde você está lançando agora *</label>
+        <select id="agente-comunidade">
+          <option value="" ${atual ? "" : "selected"}>Selecione a comunidade...</option>
+          ${state.comunidades.map((c) => `<option value="${c.id}" ${c.id === atual ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join("")}
+        </select>
+      </div>
+      <p class="muted" style="margin:6px 0 0;">O dízimo lançado fica na comunidade escolhida, mesmo que o dizimista seja de outra.</p>
+    </div>`;
+}
+
+function attachSeletorComunidadeAgente() {
+  const sel = document.getElementById("agente-comunidade");
+  if (!sel) return;
+  sel.addEventListener("change", () => {
+    state.comunidadeAgente = sel.value;
+    try { localStorage.setItem("dizimo_comunidade_agente", sel.value); } catch (e) {}
+    document.getElementById("conteudo").innerHTML = renderTesoureiro();
+    attachTesoureiroHandlers();
+  });
 }
 
 /* ---------- Resumo do dia (PDF) — tesoureiro e secretaria ---------- */
@@ -1147,7 +1250,7 @@ function attachAbaDizimoHandlers() {
               (d) => `
           <div class="linha-lista">
             <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}${
-              d.comunidade_id !== state.usuario.comunidade_id
+              ehAgente() || d.comunidade_id !== comunidadeDeLancamento()
                 ? ` <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span>`
                 : ""
             }</span>
@@ -1177,6 +1280,7 @@ function attachAbaDizimoHandlers() {
 
   carregarListaContribuicoes();
   attachResumoDiaHandlers();
+  attachSeletorComunidadeAgente();
 
   document.getElementById("btn-avulso").addEventListener("click", () => {
     state.dizimistaSelecionado = "avulso";
@@ -1184,7 +1288,7 @@ function attachAbaDizimoHandlers() {
     attachTesoureiroHandlers();
   });
 
-  attachFormularioNovoDizimistaHandlers(state.usuario.comunidade_id, () => {
+  attachFormularioNovoDizimistaHandlers(ehAgente() ? null : state.usuario.comunidade_id, () => {
     document.getElementById("conteudo").innerHTML = renderTesoureiro();
     attachTesoureiroHandlers();
   });
@@ -1196,10 +1300,11 @@ function renderFormularioContribuicao(dizimista, avulso) {
       <button class="link-sel" id="btn-voltar" style="margin-bottom:10px;">&larr; voltar à busca</button>
       <h2>${avulso ? "Contribuição avulsa" : "Lançar dízimo"}</h2>
       ${!avulso ? `<p class="muted"><span class="codigo mono">${escapeHtml(dizimista.codigo || "—")}</span> ${escapeHtml(dizimista.nome)}${
-        dizimista.comunidade_id !== state.usuario.comunidade_id
+        dizimista.comunidade_id !== comunidadeDeLancamento()
           ? ` <span class="muted">· cadastrado em ${escapeHtml(nomeComunidade(dizimista.comunidade_id))}</span>`
           : ""
       }</p>` : ""}
+      ${ehAgente() ? `<p class="muted">Lançando em: <b>${escapeHtml(nomeComunidade(comunidadeDeLancamento()) || "— escolha a comunidade na tela anterior")}</b></p>` : ""}
       <form id="form-contribuicao">
         ${avulso ? `<div class="campo"><label>Nome do doador *</label><input type="text" id="ct-nome-avulso" required /></div>` : ""}
         <div class="grid2">
@@ -1242,10 +1347,15 @@ function attachFormularioContribuicaoHandlers() {
     erroDiv.innerHTML = "";
     sucessoDiv.innerHTML = "";
     const avulso = state.dizimistaSelecionado === "avulso";
+    const comunidadeId = comunidadeDeLancamento();
+    if (!comunidadeId) {
+      erroDiv.innerHTML = `<div class="erro">Escolha primeiro a comunidade onde você está lançando (volte à busca).</div>`;
+      return;
+    }
     const corpo = {
       dizimista_id: avulso ? null : state.dizimistaSelecionado.id,
       nome_avulso: avulso ? document.getElementById("ct-nome-avulso").value.trim() : null,
-      comunidade_id: state.usuario.comunidade_id,
+      comunidade_id: comunidadeId,
       valor: parseFloat(document.getElementById("ct-valor").value),
       data_pagamento: document.getElementById("ct-data").value,
       meses_referencia: document.getElementById("ct-meses").value.trim() || null,
@@ -2626,7 +2736,7 @@ async function carregarCadastroUsuarios() {
         <div class="linha-lista">
           <span>
             ${escapeHtml(u.nome)}
-            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria/pároco" : escapeHtml(nomeComunidade(u.comunidade_id))}${!u.ativo ? " · inativo" : ""}</span>
+            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria/pároco" : u.perfil === "agente" ? "agente" : escapeHtml(nomeComunidade(u.comunidade_id))}${!u.ativo ? " · inativo" : ""}</span>
           </span>
           <button class="link-sel" data-id="${u.id}">editar</button>
         </div>`
@@ -2680,7 +2790,8 @@ function montarFormUsuario(usuarioExistente) {
             <label>Perfil *</label>
             <select id="cu-perfil" ${editando ? "disabled" : ""}>
               <option value="tesoureiro" ${editando && usuarioExistente.perfil === "tesoureiro" ? "selected" : ""}>Tesoureiro</option>
-              <option value="secretaria" ${editando && usuarioExistente.perfil === "secretaria" ? "selected" : ""}>Secretaria / pároco</option>
+              <option value="secretaria" ${editando && usuarioExistente.perfil === "secretaria" ? "selected" : ""}>Secretaria / pároco (geral)</option>
+              <option value="agente" ${editando && usuarioExistente.perfil === "agente" ? "selected" : ""}>Agente (cadastra e lança em qualquer comunidade)</option>
             </select>
           </div>
           <div class="campo" id="cu-campo-comunidade">
