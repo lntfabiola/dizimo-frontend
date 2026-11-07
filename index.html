@@ -1294,6 +1294,28 @@ function attachAbaDizimoHandlers() {
   });
 }
 
+/* Dados que a paróquia quer ter de cada dizimista (mesmo critério da contagem
+   de cadastros incompletos). Devolve os rótulos do que está faltando. */
+function camposFaltantes(d) {
+  const vazio = (v) => v === null || v === undefined || String(v).trim() === "";
+  const faltam = [];
+  if (vazio(d.cpf_mascarado)) faltam.push("CPF");
+  if (vazio(d.telefone)) faltam.push("telefone");
+  if (vazio(d.cep)) faltam.push("CEP");
+  if (vazio(d.data_nascimento)) faltam.push("data de nascimento");
+  return faltam;
+}
+
+function renderAvisoCadastroIncompleto(dizimista) {
+  const faltam = camposFaltantes(dizimista);
+  if (!faltam.length) return "";
+  return `
+    <div id="aviso-cadastro-incompleto" role="alert" style="margin:10px 0 14px; padding:10px 12px; border:1.5px solid var(--gold); border-radius:10px; background:rgba(201,162,74,.14); font-size:13px;">
+      <b>Cadastro incompleto</b> — falta: ${faltam.map(escapeHtml).join(", ")}.
+      <div class="muted" style="font-size:12px; margin-top:2px;">Aproveite para pedir esses dados à pessoa e passe para a secretaria completar. O lançamento pode ser feito normalmente.</div>
+    </div>`;
+}
+
 function renderFormularioContribuicao(dizimista, avulso) {
   return `
     <div class="cartao">
@@ -1305,6 +1327,7 @@ function renderFormularioContribuicao(dizimista, avulso) {
           : ""
       }</p>` : ""}
       ${ehAgente() ? `<p class="muted">Lançando em: <b>${escapeHtml(nomeComunidade(comunidadeDeLancamento()) || "— escolha a comunidade na tela anterior")}</b></p>` : ""}
+      ${!avulso ? renderAvisoCadastroIncompleto(dizimista) : ""}
       <form id="form-contribuicao">
         ${avulso ? `<div class="campo"><label>Nome do doador *</label><input type="text" id="ct-nome-avulso" required /></div>` : ""}
         <div class="grid2">
