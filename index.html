@@ -185,6 +185,287 @@
   .comp-barra { width: 16px; border-radius: 3px 3px 0 0; }
   .comp-pct { font-size: 10px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
   .comp-label { font-size: 9.5px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
+
+  /* =========================================================
+     REFRESH VISUAL — regras novas que sobrescrevem as de cima
+     (mesma especificidade, mais abaixo no arquivo = vencem).
+     Nenhum nome de classe foi trocado, então o JS não muda.
+     ========================================================= */
+  :root {
+    --bg: #F1EEE6;
+    --bg-2: #E9E5D9;
+    --surface: #FFFFFF;
+    --line: #E6DFCE;
+    --line-strong: #D8CFB8;
+    --ink: #211B14;
+    --ink-2: #4A4136;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 1px 2px rgba(28,23,18,.06), 0 1px 1px rgba(28,23,18,.04);
+    --shadow: 0 2px 6px rgba(28,23,18,.05), 0 14px 34px -18px rgba(28,23,18,.28);
+    --shadow-lg: 0 30px 70px -24px rgba(28,23,18,.42);
+    --ok: #2C6E63;
+    --ok-bg: #E1EDE9;
+    --focus: 0 0 0 3px rgba(201,162,74,.38);
+    --grid-line: rgba(28,23,18,.08);
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 480px at 100% -8%, rgba(201,162,74,.10), transparent 60%),
+      radial-gradient(900px 420px at -10% 0%, rgba(168,64,47,.06), transparent 55%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: .1px;
+  }
+  ::selection { background: rgba(201,162,74,.28); }
+  * { -webkit-tap-highlight-color: transparent; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  main { max-width: 960px; padding: 22px 18px 40px; }
+
+  /* ---------- Cartões ---------- */
+  .cartao {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+  }
+  .cartao:hover { box-shadow: var(--shadow); }
+  .cartao h2 {
+    font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-2); margin: 0 0 14px; display: inline-flex; align-items: center; gap: 9px;
+  }
+  .cartao h2::before {
+    content: ""; width: 18px; height: 3px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-deep)); flex: none;
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  header.topbar {
+    position: sticky; top: 0; z-index: 30;
+    background: linear-gradient(180deg, #221C15, #1A150F);
+    border-bottom: 1px solid rgba(201,162,74,.32);
+    padding: 12px 18px;
+    box-shadow: 0 8px 24px -16px rgba(0,0,0,.6);
+  }
+  header.topbar .titulo { font-size: 12px; font-weight: 600; letter-spacing: .14em; }
+  header.topbar .sub { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; opacity: .9; }
+  header.topbar .sair {
+    border-radius: 999px; padding: 7px 14px; font-weight: 600; letter-spacing: .04em;
+    border-color: rgba(255,255,255,.28); transition: background .16s ease, border-color .16s ease;
+  }
+  header.topbar .sair:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.55); }
+
+  /* ---------- Navegação em abas ---------- */
+  nav.tabs {
+    gap: 6px; padding: 16px 18px 2px; max-width: 960px; margin: 0 auto;
+  }
+  nav.tabs button {
+    border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink-2); padding: 9px 16px; font-size: 12.5px; font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    transition: transform .14s ease, background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease;
+  }
+  nav.tabs button:hover { transform: translateY(-1px); border-color: var(--line-strong); }
+  nav.tabs button.ativo {
+    background: linear-gradient(180deg, #2A2118, #1C1712); border-color: #1C1712; color: #fff;
+    box-shadow: 0 8px 18px -10px rgba(28,23,18,.6);
+  }
+  nav.tabs[style] button { box-shadow: none; }
+
+  /* ---------- Campos ---------- */
+  .campo label { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .campo input, .campo select, .campo textarea {
+    border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--line-strong);
+    transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+  .campo input:hover, .campo select:hover, .campo textarea:hover { border-color: var(--gold-deep); }
+  .campo input:focus, .campo select:focus, .campo textarea:focus {
+    outline: none; border-color: var(--gold); box-shadow: var(--focus);
+  }
+
+  /* ---------- Botões ---------- */
+  .btn {
+    border-radius: 999px; padding: 11px 20px; font-size: 12px; letter-spacing: .06em;
+    box-shadow: 0 8px 18px -10px rgba(168,64,47,.55);
+    transition: transform .12s ease, background .16s ease, box-shadow .16s ease, filter .16s ease;
+  }
+  .btn:hover { transform: translateY(-1px); filter: saturate(1.05); }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus), 0 8px 18px -10px rgba(168,64,47,.55); }
+  .btn.outline { box-shadow: none; border-width: 1.5px; }
+  .btn.outline:hover { background: rgba(28,23,18,.05); }
+  .btn.perigo { box-shadow: none; }
+  .btn.small { padding: 7px 13px; letter-spacing: .04em; }
+
+  /* ---------- Métricas ---------- */
+  .metricas { gap: 14px; }
+  .metrica {
+    position: relative; overflow: hidden; border-radius: var(--radius);
+    border: 1px solid var(--line); padding: 16px 18px; box-shadow: var(--shadow-sm);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .metrica::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+  }
+  .metrica:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .metrica .label { text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px; }
+  .metrica .valor { font-size: 24px; letter-spacing: -.01em; }
+
+  /* ---------- Listas ---------- */
+  .linha-lista {
+    border-bottom: 1px solid var(--line); padding: 11px 10px; border-radius: 8px;
+    transition: background .14s ease;
+  }
+  .linha-lista:hover { background: rgba(201,162,74,.07); }
+  .linha-lista .codigo {
+    display: inline-block; background: var(--bg-2); color: var(--ink-2);
+    padding: 2px 6px; border-radius: 5px; margin-right: 8px; letter-spacing: .02em;
+  }
+
+  /* ---------- Toggle de pílulas ---------- */
+  .pill-toggle {
+    background: var(--bg-2); padding: 4px; border-radius: 999px; gap: 4px;
+    border: 1px solid var(--line);
+  }
+  .pill-toggle button {
+    border: none; border-radius: 999px; padding: 8px 0; transition: background .16s ease, color .16s ease, box-shadow .16s ease;
+  }
+  .pill-toggle button.ativo { box-shadow: 0 6px 14px -8px rgba(168,64,47,.7); }
+
+  /* ---------- Tabelas ---------- */
+  table.relatorio th {
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+    text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px;
+    border-bottom: 2px solid var(--ink);
+  }
+  table.relatorio tbody tr { transition: background .12s ease; }
+  table.relatorio tbody tr:nth-child(even) td { background: rgba(28,23,18,.025); }
+  table.relatorio tbody tr:hover td { background: rgba(201,162,74,.10); }
+  table.relatorio td { border-bottom: 1px solid var(--line); }
+
+  /* ---------- Gráficos ---------- */
+  .serie-grafico, .comp-grafico {
+    border-radius: var(--radius-sm); padding: 14px 10px 6px;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 25%,
+      linear-gradient(180deg, rgba(28,23,18,.02), transparent 40%);
+    background-color: #FCFBF7; border: 1px solid var(--line);
+  }
+  .serie-barra { border-radius: 6px 6px 3px 3px; box-shadow: inset 0 -2px 6px rgba(0,0,0,.06); }
+  .serie-segmento, .comp-barra, .barra-segmento { transition: height .5s cubic-bezier(.2,.7,.2,1), width .5s cubic-bezier(.2,.7,.2,1); }
+  .serie-coluna:hover .serie-barra, .comp-coluna:hover .comp-barra { filter: brightness(1.08); }
+  .comp-barra { border-radius: 5px 5px 2px 2px; }
+  .serie-label, .comp-label { font-weight: 600; }
+  .serie-total { font-weight: 700; color: var(--ink-2); }
+  .legenda-cores { gap: 14px; }
+  .legenda-cores i { width: 10px; height: 10px; border-radius: 3px; }
+
+  .barra-trilha { height: 18px; border-radius: 999px; background: var(--bg-2); }
+  .barra-segmento:first-child { border-radius: 999px 0 0 999px; }
+  .barra-valor { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---------- Diversos ---------- */
+  .tag-data { background: #FBEEDD; border: 1px solid #EAD4B0; color: var(--gold-deep); }
+  .vazio {
+    border: 1px dashed var(--line-strong); border-radius: var(--radius-sm);
+    background: #FCFBF7; padding: 22px 12px;
+  }
+  .muted { line-height: 1.5; }
+  .erro, .sucesso { border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12.5px; }
+  .sucesso { background: var(--ok-bg); color: var(--ok); border-color: #BCD8D0; }
+
+  .link-sel {
+    border-radius: 999px; padding: 5px 12px; border: 1px solid var(--line-strong);
+    background: var(--surface); transition: background .14s ease, border-color .14s ease, color .14s ease;
+    white-space: nowrap;
+  }
+  .link-sel:hover { background: var(--brick); border-color: var(--brick); color: #fff; }
+
+  /* nome clicável que leva ao perfil da pessoa */
+  .link-nome {
+    background: none; border: none; padding: 0; font: inherit; cursor: pointer;
+    color: var(--brick); font-weight: 600;
+    text-decoration: underline; text-decoration-style: dotted;
+    text-underline-offset: 3px; text-decoration-color: rgba(168,64,47,.45);
+    transition: color .14s ease, text-decoration-color .14s ease;
+  }
+  .link-nome:hover { color: var(--brick-hover); text-decoration-style: solid; text-decoration-color: currentColor; }
+  .link-nome:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 4px; }
+
+  /* ---------- Modal de perfil do dizimista ---------- */
+  .perfil-backdrop {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 16px; background: rgba(20,16,12,.5); backdrop-filter: blur(3px);
+    animation: perfil-fade .16s ease;
+  }
+  .perfil-modal {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+    box-shadow: var(--shadow-lg); animation: perfil-pop .18s cubic-bezier(.2,.8,.2,1);
+  }
+  .perfil-head {
+    position: sticky; top: 0; background: linear-gradient(180deg, #ffffff, #FBF8F1);
+    border-bottom: 1px solid var(--line); padding: 18px 20px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
+  }
+  .perfil-head h3 { margin: 0; font-size: 17px; }
+  .perfil-close {
+    flex: none; width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line-strong);
+    background: var(--surface); cursor: pointer; font-size: 16px; line-height: 1; color: var(--ink-2);
+    transition: background .14s ease, transform .14s ease;
+  }
+  .perfil-close:hover { background: var(--bg-2); transform: rotate(90deg); }
+  .perfil-body { padding: 18px 20px 22px; }
+  .perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-bottom: 6px; }
+  .perfil-campo .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .perfil-campo .v { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .perfil-hist { margin-top: 8px; }
+  .perfil-hist .linha-lista:hover { background: transparent; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; background: var(--bg-2); color: var(--ink-2); border: 1px solid var(--line);
+  }
+  .chip.ok { background: var(--ok-bg); color: var(--ok); border-color: #BCD8D0; }
+  .chip.alerta { background: #F7E5E2; color: var(--brick-hover); border-color: #E7C3BB; }
+
+  @keyframes perfil-fade { from { opacity: 0; } }
+  @keyframes perfil-pop { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+
+  /* ---------- Carregando (shimmer) ---------- */
+  .skeleton {
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--bg-2) 25%, #F3EFE4 37%, var(--bg-2) 63%);
+    background-size: 400% 100%; animation: sk 1.3s ease infinite;
+  }
+  @keyframes sk { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+  .btn-mais {
+    display: block; width: 100%; margin-top: 10px; padding: 9px 0;
+    border: 1px dashed var(--line-strong); border-radius: var(--radius-sm);
+    background: #FCFBF7; color: var(--ink-2); font-weight: 600; font-size: 12px; cursor: pointer;
+    transition: background .14s ease, border-color .14s ease;
+  }
+  .btn-mais:hover { background: var(--bg-2); border-color: var(--gold-deep); }
+  .lista-contagem { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: .02em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+  @media (max-width: 560px) {
+    .perfil-grid { grid-template-columns: 1fr; }
+    main { padding: 16px 12px 32px; }
+  }
 </style>
 </head>
 <body>
@@ -228,8 +509,14 @@ const state = {
   balancoGranularidade: "mes",
   balancoComunidade: "",
   estatisticasComunidade: "",
+  estatisticasSepararComunidade: true,
   inadimplentesMeses: 3,
+  aniversarioComunidade: "",
+  cadastroPagina: 0,
+  buscaPagina: 0,
 };
+
+const TAM_PAGINA = 50;
 
 /* =========================================================
    API
@@ -289,6 +576,123 @@ function hojeISO() {
 function escapeHtml(s) {
   if (s === null || s === undefined) return "";
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function fmtDataBR(iso) {
+  if (!iso) return "—";
+  return String(iso).slice(0, 10).split("-").reverse().join("/");
+}
+
+/* Igual ao api(), mas devolve também o total de registros (cabeçalho
+   X-Total-Count) — usado nas listas paginadas de dizimistas. */
+async function apiComTotal(path) {
+  const headers = {};
+  if (state.token) headers["Authorization"] = "Bearer " + state.token;
+  const res = await fetch(API_BASE + path, { headers });
+  if (res.status === 401) {
+    logout();
+    throw new Error("Sessão expirada. Faça login novamente.");
+  }
+  if (!res.ok) throw new Error("Erro na requisição (" + res.status + ")");
+  const itens = await res.json();
+  const total = Number(res.headers.get("X-Total-Count")) || itens.length;
+  return { itens, total };
+}
+
+/* =========================================================
+   PERFIL DO DIZIMISTA (modal aberto ao clicar num nome)
+   ========================================================= */
+function linkDizimista(id, textoHtml) {
+  if (!id) return textoHtml;
+  return `<button type="button" class="link-nome" data-perfil-id="${id}">${textoHtml}</button>`;
+}
+
+function fecharPerfilDizimista() {
+  const host = document.getElementById("perfil-host");
+  if (host) host.innerHTML = "";
+  document.removeEventListener("keydown", _perfilEsc);
+}
+function _perfilEsc(e) {
+  if (e.key === "Escape") fecharPerfilDizimista();
+}
+
+async function abrirPerfilDizimista(id) {
+  let host = document.getElementById("perfil-host");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "perfil-host";
+    document.body.appendChild(host);
+  }
+  host.innerHTML = `
+    <div class="perfil-backdrop" id="perfil-backdrop">
+      <div class="perfil-modal" role="dialog" aria-modal="true">
+        <div class="perfil-head">
+          <div><h3 class="serif">Carregando…</h3></div>
+          <button class="perfil-close" id="perfil-close" aria-label="Fechar">✕</button>
+        </div>
+        <div class="perfil-body"><div class="skeleton" style="height:120px;"></div></div>
+      </div>
+    </div>`;
+  document.getElementById("perfil-close").addEventListener("click", fecharPerfilDizimista);
+  document.getElementById("perfil-backdrop").addEventListener("click", (e) => {
+    if (e.target.id === "perfil-backdrop") fecharPerfilDizimista();
+  });
+  document.addEventListener("keydown", _perfilEsc);
+
+  try {
+    const d = await api("/dizimistas/" + id);
+    const modal = host.querySelector(".perfil-modal");
+    const statusChip =
+      d.status === "ativo"
+        ? `<span class="chip ok">ativo</span>`
+        : `<span class="chip alerta">${escapeHtml(d.status)}</span>`;
+    const campo = (k, v) => `<div class="perfil-campo"><div class="k">${k}</div><div class="v">${v || "—"}</div></div>`;
+    const hist = (d.contribuicoes || [])
+      .map(
+        (c) => `
+        <div class="linha-lista" style="flex-direction:column; align-items:flex-start; gap:2px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span>${fmtDataBR(c.data_pagamento)}</span>
+            <span class="mono" style="font-weight:700;">${fmtMoeda(c.valor)}</span>
+          </div>
+          <div class="muted" style="font-size:11px;">
+            ${escapeHtml({ dinheiro: "Dinheiro", pix: "Pix", cartao: "Cartão", outro: "Outro" }[c.forma_pagamento] || c.forma_pagamento)}${
+          c.meses_referencia ? " · " + escapeHtml(c.meses_referencia) : ""
+        }</div>
+        </div>`
+      )
+      .join("");
+    modal.innerHTML = `
+      <div class="perfil-head">
+        <div>
+          <h3 class="serif">${escapeHtml(d.nome)}</h3>
+          <div class="muted" style="font-size:12px; margin-top:2px;">
+            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> · ${escapeHtml(d.comunidade_nome)} ${statusChip}
+          </div>
+        </div>
+        <button class="perfil-close" id="perfil-close" aria-label="Fechar">✕</button>
+      </div>
+      <div class="perfil-body">
+        <div class="metricas" style="margin-bottom:16px;">
+          <div class="metrica"><div class="label">Total contribuído</div><div class="valor">${fmtMoeda(d.total_contribuido)}</div></div>
+          <div class="metrica"><div class="label">Neste ano</div><div class="valor">${fmtMoeda(d.total_ano_atual)}</div></div>
+          <div class="metrica"><div class="label">Lançamentos</div><div class="valor">${d.qtd_contribuicoes}</div></div>
+        </div>
+        <div class="perfil-grid">
+          ${campo("CPF", escapeHtml(d.cpf_mascarado))}
+          ${campo("Telefone", escapeHtml(d.telefone))}
+          ${campo("Nascimento", d.data_nascimento ? fmtDataBR(d.data_nascimento) : "—")}
+          ${campo("CEP", escapeHtml(d.cep))}
+          ${campo("Endereço", escapeHtml(d.endereco))}
+          ${campo("Última contribuição", d.ultima_contribuicao ? fmtDataBR(d.ultima_contribuicao) : "nunca contribuiu")}
+        </div>
+        <h2 style="margin:18px 0 6px;">Histórico de contribuições</h2>
+        <div class="perfil-hist">${hist || '<div class="vazio">Nenhuma contribuição lançada.</div>'}</div>
+      </div>`;
+    modal.querySelector("#perfil-close").addEventListener("click", fecharPerfilDizimista);
+  } catch (err) {
+    const body = host.querySelector(".perfil-body");
+    if (body) body.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
 }
 
 /* =========================================================
@@ -405,6 +809,16 @@ function renderShell() {
 
 function attachShellHandlers() {
   document.getElementById("btn-sair").addEventListener("click", logout);
+  if (!window._perfilDelegado) {
+    window._perfilDelegado = true;
+    document.body.addEventListener("click", (e) => {
+      const alvo = e.target.closest("[data-perfil-id]");
+      if (alvo) {
+        e.preventDefault();
+        abrirPerfilDizimista(alvo.dataset.perfilId);
+      }
+    });
+  }
   if (state.usuario.perfil === "secretaria") {
     attachNavSecretaria();
     attachGestaoHandlers();
@@ -478,7 +892,43 @@ function renderAbaDizimo() {
       <h2>Últimos lançamentos de dízimo</h2>
       <div id="dz-lista">Carregando...</div>
     </div>
+    ${renderCartaoResumoDia(false)}
   `;
+}
+
+/* ---------- Resumo do dia (PDF) — tesoureiro e secretaria ---------- */
+function renderCartaoResumoDia(comEscolhaDeComunidade) {
+  return `
+    <div class="cartao">
+      <h2>Resumo do dia</h2>
+      <p class="muted">PDF com tudo que entrou no dia (dízimo e ofertório)${comEscolhaDeComunidade ? ", por comunidade" : ""}, para conferir com o caixa.</p>
+      <div class="grid2">
+        <div class="campo"><label>Data</label><input type="date" id="rd-data" value="${hojeISO()}" max="${hojeISO()}" /></div>
+        ${
+          comEscolhaDeComunidade
+            ? `<div class="campo"><label>Comunidade</label>
+                <select id="rd-comunidade">
+                  <option value="">Todas</option>
+                  ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+                </select></div>`
+            : ""
+        }
+      </div>
+      <button class="btn full" id="btn-resumo-dia">Gerar resumo do dia (PDF)</button>
+    </div>`;
+}
+
+function attachResumoDiaHandlers() {
+  const btn = document.getElementById("btn-resumo-dia");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const data = document.getElementById("rd-data").value || hojeISO();
+    const selComunidade = document.getElementById("rd-comunidade");
+    const comunidadeId = selComunidade ? selComunidade.value : "";
+    let url = `${API_BASE}/relatorios/resumo-dia?data=${data}`;
+    if (comunidadeId) url += `&comunidade_id=${comunidadeId}`;
+    baixarArquivoProtegido(btn, url, `resumo-dia-${data}.pdf`, "Gerando PDF...");
+  });
 }
 
 async function carregarListaContribuicoes() {
@@ -499,7 +949,7 @@ async function carregarListaContribuicoes() {
 
 function renderLinhaContribuicao(c, comComunidade) {
   const quem = c.dizimista_nome
-    ? `<span class="codigo mono">${escapeHtml(c.dizimista_codigo || "—")}</span>${escapeHtml(c.dizimista_nome)}`
+    ? `<span class="codigo mono">${escapeHtml(c.dizimista_codigo || "—")}</span>${linkDizimista(c.dizimista_id, escapeHtml(c.dizimista_nome))}`
     : `${escapeHtml(c.nome_avulso || "avulso")} <span class="muted">(avulso)</span>`;
   const formaLabel = { dinheiro: "Dinheiro", pix: "Pix", cartao: "Cartão", outro: "Outro" }[c.forma_pagamento] || c.forma_pagamento;
   return `
@@ -682,20 +1132,31 @@ function attachAbaDizimoHandlers() {
       return;
     }
     try {
-      const resultados = await api("/dizimistas?busca=" + encodeURIComponent(termo));
+      const { itens: resultados, total } = await apiComTotal(
+        "/dizimistas?limite=50&busca=" + encodeURIComponent(termo)
+      );
       state.resultadosBusca = resultados;
+      const aviso =
+        total > resultados.length
+          ? `<div class="lista-contagem">Mostrando ${resultados.length} de ${total} — refine a busca para ver os demais.</div>`
+          : "";
       container.innerHTML = resultados.length
-        ? resultados
+        ? aviso +
+          resultados
             .map(
               (d) => `
           <div class="linha-lista">
-            <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${escapeHtml(d.nome)}</span>
+            <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}${
+              d.comunidade_id !== state.usuario.comunidade_id
+                ? ` <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span>`
+                : ""
+            }</span>
             <button class="link-sel" data-id="${d.id}">selecionar</button>
           </div>`
             )
             .join("")
         : `<div class="vazio">Nenhum dizimista encontrado.</div>`;
-      container.querySelectorAll("button[data-id]").forEach((btn) => {
+      container.querySelectorAll("button.link-sel[data-id]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const dizimista = state.resultadosBusca.find((d) => d.id === Number(btn.dataset.id));
           state.dizimistaSelecionado = dizimista;
@@ -715,6 +1176,7 @@ function attachAbaDizimoHandlers() {
   if (state.buscaDizimista) renderizarResultados();
 
   carregarListaContribuicoes();
+  attachResumoDiaHandlers();
 
   document.getElementById("btn-avulso").addEventListener("click", () => {
     state.dizimistaSelecionado = "avulso";
@@ -733,7 +1195,11 @@ function renderFormularioContribuicao(dizimista, avulso) {
     <div class="cartao">
       <button class="link-sel" id="btn-voltar" style="margin-bottom:10px;">&larr; voltar à busca</button>
       <h2>${avulso ? "Contribuição avulsa" : "Lançar dízimo"}</h2>
-      ${!avulso ? `<p class="muted"><span class="codigo mono">${escapeHtml(dizimista.codigo || "—")}</span> ${escapeHtml(dizimista.nome)}</p>` : ""}
+      ${!avulso ? `<p class="muted"><span class="codigo mono">${escapeHtml(dizimista.codigo || "—")}</span> ${escapeHtml(dizimista.nome)}${
+        dizimista.comunidade_id !== state.usuario.comunidade_id
+          ? ` <span class="muted">· cadastrado em ${escapeHtml(nomeComunidade(dizimista.comunidade_id))}</span>`
+          : ""
+      }</p>` : ""}
       <form id="form-contribuicao">
         ${avulso ? `<div class="campo"><label>Nome do doador *</label><input type="text" id="ct-nome-avulso" required /></div>` : ""}
         <div class="grid2">
@@ -868,13 +1334,35 @@ function attachAbaOfertorioHandlers() {
 }
 
 /* ---------- Aba Aniversários (compartilhada tesoureiro/secretaria) ---------- */
+function _aniversarioQuery() {
+  let q = "periodo=" + state.periodoAniversario;
+  if (state.aniversarioComunidade) q += "&comunidade_id=" + state.aniversarioComunidade;
+  return q;
+}
+
 function renderAbaAniversarios(comTodasComunidades) {
+  const seletorComunidade = comTodasComunidades
+    ? `
+      <div class="campo" style="margin-bottom:12px;">
+        <label>Comunidade</label>
+        <select id="an-comunidade">
+          <option value="">Todas as comunidades</option>
+          ${state.comunidades
+            .map(
+              (c) =>
+                `<option value="${c.id}" ${String(c.id) === state.aniversarioComunidade ? "selected" : ""}>${escapeHtml(c.nome)}</option>`
+            )
+            .join("")}
+        </select>
+      </div>`
+    : "";
   return `
     <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Aniversariantes</h2>
         <button class="btn outline small" id="btn-imprimir-aniversariantes">Imprimir / PDF</button>
       </div>
+      ${seletorComunidade}
       <div class="pill-toggle" id="an-periodo-toggle">
         <button type="button" data-periodo="semana" class="${state.periodoAniversario === "semana" ? "ativo" : ""}">Esta semana</button>
         <button type="button" data-periodo="mes" class="${state.periodoAniversario === "mes" ? "ativo" : ""}">Este mês</button>
@@ -888,14 +1376,15 @@ async function carregarAniversariantes(comTodasComunidades) {
   const container = document.getElementById("an-lista");
   if (!container) return;
   try {
-    const lista = await api("/dizimistas/aniversariantes?periodo=" + state.periodoAniversario);
+    const lista = await api("/dizimistas/aniversariantes?" + _aniversarioQuery());
+    const mostrarComunidade = comTodasComunidades && !state.aniversarioComunidade;
     container.innerHTML = lista.length
       ? lista
           .map(
             (a) => `
         <div class="linha-lista">
-          <span><span class="codigo mono">${escapeHtml(a.codigo || "—")}</span>${escapeHtml(a.nome)}${
-              comTodasComunidades ? ` <span class="muted">· ${escapeHtml(nomeComunidade(a.comunidade_id))}</span>` : ""
+          <span><span class="codigo mono">${escapeHtml(a.codigo || "—")}</span>${linkDizimista(a.id, escapeHtml(a.nome))}${
+              mostrarComunidade ? ` <span class="muted">· ${escapeHtml(nomeComunidade(a.comunidade_id))}</span>` : ""
             }</span>
           <span class="tag-data">${a.data_nascimento.slice(5).split("-").reverse().join("/")}</span>
         </div>`
@@ -909,6 +1398,13 @@ async function carregarAniversariantes(comTodasComunidades) {
 
 function attachAbaAniversariosHandlers(comTodasComunidades) {
   carregarAniversariantes(comTodasComunidades);
+  const selComunidade = document.getElementById("an-comunidade");
+  if (selComunidade) {
+    selComunidade.addEventListener("change", () => {
+      state.aniversarioComunidade = selComunidade.value;
+      carregarAniversariantes(comTodasComunidades);
+    });
+  }
   document.querySelectorAll("#an-periodo-toggle button").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.periodoAniversario = btn.dataset.periodo;
@@ -918,8 +1414,9 @@ function attachAbaAniversariosHandlers(comTodasComunidades) {
   });
   document.getElementById("btn-imprimir-aniversariantes").addEventListener("click", (e) => {
     const btn = e.target;
-    const url = `${API_BASE}/dizimistas/aniversariantes/pdf?periodo=${state.periodoAniversario}`;
-    baixarArquivoProtegido(btn, url, `aniversariantes-${state.periodoAniversario}.pdf`, "Gerando PDF...");
+    const url = `${API_BASE}/dizimistas/aniversariantes/pdf?${_aniversarioQuery()}`;
+    const sufixo = state.aniversarioComunidade ? "-" + state.aniversarioComunidade : "";
+    baixarArquivoProtegido(btn, url, `aniversariantes-${state.periodoAniversario}${sufixo}.pdf`, "Gerando PDF...");
   });
 }
 
@@ -1034,6 +1531,7 @@ function renderConsolidado() {
       </div>
     </div>
     <div id="rel-conteudo">Carregando...</div>
+    ${renderCartaoResumoDia(true)}
   `;
 }
 
@@ -1169,6 +1667,7 @@ async function carregarRelatorio() {
 
 function attachConsolidadoHandlers() {
   carregarRelatorio();
+  attachResumoDiaHandlers();
   document.getElementById("rel-mes").addEventListener("change", (e) => {
     state.mesRelatorio = Number(e.target.value);
     carregarRelatorio();
@@ -1455,6 +1954,13 @@ function renderEstatisticas() {
           ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
         </select>
       </div>
+      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:6px;">
+        <label class="muted" style="display:flex; align-items:center; gap:6px; font-size:12.5px;">
+          <input type="checkbox" id="est-separar-comunidade" ${state.estatisticasSepararComunidade ? "checked" : ""} style="width:auto;" />
+          Separar por comunidade (uma linha por comunidade + total)
+        </label>
+        <button type="button" class="btn outline small" id="btn-exportar-estatisticas">Exportar Excel</button>
+      </div>
     </div>
     <div id="est-metricas" class="metricas">Carregando...</div>
     <div class="cartao">
@@ -1545,11 +2051,11 @@ async function carregarInadimplentes() {
             (d) => `
         <div class="linha-lista">
           <span>
-            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${escapeHtml(d.nome)}
+            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}
             ${!comunidadeId ? `<span class="muted"> · ${escapeHtml(d.comunidade_nome)}</span>` : ""}
           </span>
           <span class="muted" style="font-size:12px;">
-            ${d.ultima_contribuicao ? "última: " + d.ultima_contribuicao.split("-").reverse().join("/") : "nunca contribuiu"}
+            ${d.ultima_contribuicao ? "última: " + fmtDataBR(d.ultima_contribuicao) : "nunca contribuiu"}
           </span>
         </div>`
           )
@@ -1563,10 +2069,24 @@ async function carregarInadimplentes() {
 function attachEstatisticasHandlers() {
   carregarEstatisticas();
   carregarInadimplentes();
+  document.getElementById("est-comunidade").value = state.estatisticasComunidade || "";
   document.getElementById("est-comunidade").addEventListener("change", () => {
     state.estatisticasComunidade = document.getElementById("est-comunidade").value;
     carregarEstatisticas();
     carregarInadimplentes();
+  });
+  const chkSeparar = document.getElementById("est-separar-comunidade");
+  chkSeparar.addEventListener("change", () => {
+    state.estatisticasSepararComunidade = chkSeparar.checked;
+  });
+  document.getElementById("btn-exportar-estatisticas").addEventListener("click", (e) => {
+    const btn = e.target;
+    const comunidadeId = document.getElementById("est-comunidade").value;
+    const params = new URLSearchParams();
+    if (comunidadeId) params.set("comunidade_id", comunidadeId);
+    if (chkSeparar.checked) params.set("separar_por_comunidade", "true");
+    const url = `${API_BASE}/dizimistas/estatisticas/exportar?${params.toString()}`;
+    baixarArquivoProtegido(btn, url, "estatisticas-dizimo.xlsx", "Gerando Excel...");
   });
   document.getElementById("est-meses-inadimplente").value = String(state.inadimplentesMeses);
   document.getElementById("est-meses-inadimplente").addEventListener("change", () => {
@@ -1831,33 +2351,67 @@ async function carregarCompletude() {
   }
 }
 
-async function carregarCadastroDizimistas() {
+function _linhaCadastroDizimista(d) {
+  return `
+    <div class="linha-lista">
+      <span>
+        <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}
+        <span class="muted"> · ${escapeHtml(nomeComunidade(d.comunidade_id))}${d.status !== "ativo" ? " · " + escapeHtml(d.status) : ""}</span>
+      </span>
+      <button class="link-sel" data-editar-id="${d.id}">editar</button>
+    </div>`;
+}
+
+async function carregarCadastroDizimistas(anexar = false) {
   const container = document.getElementById("cd-lista");
   if (!container) return;
+  if (!anexar) state.cadastroPagina = 0;
+
   const comunidadeId = document.getElementById("cd-comunidade").value;
   const busca = document.getElementById("cd-busca").value.trim();
   const params = new URLSearchParams();
   if (comunidadeId) params.set("comunidade_id", comunidadeId);
   if (busca) params.set("busca", busca);
+  params.set("limite", TAM_PAGINA);
+  params.set("offset", state.cadastroPagina * TAM_PAGINA);
+
+  if (!anexar) container.innerHTML = `<div class="skeleton" style="height:140px;"></div>`;
+
   try {
-    const lista = await api("/dizimistas?" + params.toString());
-    container.innerHTML = lista.length
-      ? lista
-          .map(
-            (d) => `
-        <div class="linha-lista">
-          <span>
-            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${escapeHtml(d.nome)}
-            <span class="muted"> · ${escapeHtml(nomeComunidade(d.comunidade_id))}${d.status !== "ativo" ? " · " + escapeHtml(d.status) : ""}</span>
-          </span>
-          <button class="link-sel" data-id="${d.id}">editar</button>
-        </div>`
-          )
-          .join("")
-      : `<div class="vazio">Nenhum dizimista encontrado.</div>`;
-    container.querySelectorAll("button[data-id]").forEach((btn) => {
+    const { itens, total } = await apiComTotal("/dizimistas?" + params.toString());
+    const carregados = state.cadastroPagina * TAM_PAGINA + itens.length;
+
+    if (anexar) {
+      const alvo = document.getElementById("cd-lista-itens");
+      if (alvo) alvo.insertAdjacentHTML("beforeend", itens.map(_linhaCadastroDizimista).join(""));
+    } else if (!itens.length) {
+      container.innerHTML = `<div class="vazio">Nenhum dizimista encontrado.</div>`;
+      return;
+    } else {
+      container.innerHTML = `
+        <div class="lista-contagem" id="cd-contagem-linha"></div>
+        <div id="cd-lista-itens">${itens.map(_linhaCadastroDizimista).join("")}</div>`;
+    }
+
+    const linhaContagem = document.getElementById("cd-contagem-linha");
+    if (linhaContagem) linhaContagem.textContent = `Mostrando ${carregados} de ${total} — em ordem alfabética`;
+
+    const btnMaisAntigo = document.getElementById("cd-mais");
+    if (btnMaisAntigo) btnMaisAntigo.remove();
+    if (carregados < total) {
+      const faltam = Math.min(TAM_PAGINA, total - carregados);
+      container.insertAdjacentHTML("beforeend", `<button class="btn-mais" id="cd-mais">Carregar mais ${faltam} (de ${total - carregados} restantes)</button>`);
+      document.getElementById("cd-mais").addEventListener("click", () => {
+        state.cadastroPagina += 1;
+        carregarCadastroDizimistas(true);
+      });
+    }
+
+    container.querySelectorAll("button[data-editar-id]").forEach((btn) => {
+      if (btn._wired) return;
+      btn._wired = true;
       btn.addEventListener("click", () => {
-        state.dizimistaEditandoId = Number(btn.dataset.id);
+        state.dizimistaEditandoId = Number(btn.dataset.editarId);
         document.getElementById("conteudo").innerHTML = renderGestao();
         attachGestaoHandlers();
       });
@@ -1900,7 +2454,7 @@ function attachCadastroDizimistasHandlers() {
   let timeoutBusca;
   document.getElementById("cd-busca").addEventListener("input", () => {
     clearTimeout(timeoutBusca);
-    timeoutBusca = setTimeout(carregarCadastroDizimistas, 300);
+    timeoutBusca = setTimeout(() => carregarCadastroDizimistas(), 300);
   });
   document.getElementById("btn-gerar-etiquetas").addEventListener("click", (e) => gerarEtiquetasPdf(e.target));
   document.getElementById("btn-renovar-codigos").addEventListener("click", async () => {
@@ -1934,12 +2488,7 @@ function attachCadastroDizimistasHandlers() {
 async function carregarFormEdicaoDizimista() {
   const wrap = document.getElementById("cd-form-wrap");
   try {
-    const lista = await api("/dizimistas?busca=");
-    const dizimista = lista.find((d) => d.id === state.dizimistaEditandoId);
-    if (!dizimista) {
-      wrap.innerHTML = `<div class="erro">Dizimista não encontrado.</div>`;
-      return;
-    }
+    const dizimista = await api("/dizimistas/" + state.dizimistaEditandoId);
     wrap.innerHTML = `
       <div class="cartao">
         <button class="link-sel" id="cd-voltar" style="margin-bottom:10px;">&larr; voltar à lista</button>
