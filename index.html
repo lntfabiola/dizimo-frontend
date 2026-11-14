@@ -689,6 +689,9 @@ function logout() {
   state.usuario = null;
   state.dizimistaSelecionado = null; // não deixa tela de um usuário aparecer pro próximo
   state.dizimistaCompletando = null;
+  state.abaSecretaria = "consolidado";
+  state.abaTesoureiro = "dizimo";
+  state.abaCadastros = "dizimistas";
   localStorage.removeItem("dizimo_token");
   render();
 }
@@ -962,10 +965,67 @@ function comunidadeDeLancamento() {
   return state.usuario.comunidade_id || null;
 }
 
+/* Trocar a própria senha (pede a senha atual). Vale pra todos os perfis, inclusive o pároco. */
+function abrirTrocaDeSenha() {
+  let host = document.getElementById("perfil-host");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "perfil-host";
+    document.body.appendChild(host);
+  }
+  host.innerHTML = `
+    <div class="perfil-backdrop" id="perfil-backdrop">
+      <div class="perfil-modal" style="max-width:420px;" role="dialog" aria-modal="true">
+        <div class="perfil-head">
+          <div><h3 class="serif">Trocar minha senha</h3><div class="muted" style="font-size:12px; margin-top:2px;">${escapeHtml(state.usuario.nome)}</div></div>
+          <button class="perfil-close" id="perfil-close" aria-label="Fechar">✕</button>
+        </div>
+        <div class="perfil-body">
+          <form id="form-trocar-senha">
+            <div class="campo"><label>Senha atual *</label><input type="password" id="ts-atual" autocomplete="current-password" required /></div>
+            <div class="campo"><label>Nova senha * <span class="muted">(mínimo de 6 caracteres)</span></label><input type="password" id="ts-nova" autocomplete="new-password" minlength="6" required /></div>
+            <div class="campo"><label>Repita a nova senha *</label><input type="password" id="ts-confirma" autocomplete="new-password" minlength="6" required /></div>
+            <div id="ts-erro"></div>
+            <div id="ts-sucesso"></div>
+            <button type="submit" class="btn full">Trocar senha</button>
+          </form>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("perfil-close").addEventListener("click", fecharPerfilDizimista);
+  document.getElementById("perfil-backdrop").addEventListener("click", (e) => {
+    if (e.target.id === "perfil-backdrop") fecharPerfilDizimista();
+  });
+  document.getElementById("ts-atual").focus();
+  document.getElementById("form-trocar-senha").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erro = document.getElementById("ts-erro");
+    const sucesso = document.getElementById("ts-sucesso");
+    erro.innerHTML = "";
+    sucesso.innerHTML = "";
+    const atual = document.getElementById("ts-atual").value;
+    const nova = document.getElementById("ts-nova").value;
+    if (nova !== document.getElementById("ts-confirma").value) {
+      erro.innerHTML = `<div class="erro">As duas senhas novas não são iguais.</div>`;
+      return;
+    }
+    const botao = e.target.querySelector('button[type="submit"]');
+    botao.disabled = true;
+    try {
+      await api("/auth/trocar-senha", { method: "POST", body: { senha_atual: atual, senha_nova: nova } });
+      sucesso.innerHTML = `<span class="carimbo">Senha trocada ✓</span>`;
+      setTimeout(fecharPerfilDizimista, 1400);
+    } catch (err) {
+      erro.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+      botao.disabled = false;
+    }
+  });
+}
+
 function renderShell() {
-  const ehSecretaria = state.usuario.perfil === "secretaria";
+  const ehSecretaria = ["secretaria", "paroco"].includes(state.usuario.perfil); // telas de gestão
   const subtitulo = ehSecretaria
-    ? "secretaria / pároco"
+    ? state.usuario.perfil === "paroco" ? "pároco · somente consulta" : "secretaria"
     : (ehAgente() ? "agente · " : "") + (nomeComunidade(state.usuario.comunidade_id) || "sem comunidade");
 
   return `
@@ -977,7 +1037,10 @@ function renderShell() {
           <div class="sub">${escapeHtml(subtitulo)}</div>
         </div>
       </div>
-      <button class="sair" id="btn-sair">Sair</button>
+      <div style="display:flex; gap:8px;">
+        <button class="sair" id="btn-trocar-senha">Trocar senha</button>
+        <button class="sair" id="btn-sair">Sair</button>
+      </div>
     </header>
     ${ehSecretaria ? renderNavSecretaria() + '<main id="conteudo">' + renderGestao() + "</main>" : renderNavTesoureiro() + '<main id="conteudo">' + renderTesoureiro() + "</main>"}
     <footer style="text-align:center; padding:16px; font-size:11px; color:var(--muted);">
@@ -1008,7 +1071,8 @@ function attachShellHandlers() {
       }
     });
   }
-  if (state.usuario.perfil === "secretaria") {
+  document.getElementById("btn-trocar-senha").addEventListener("click", abrirTrocaDeSenha);
+  if (["secretaria", "paroco"].includes(state.usuario.perfil)) {
     attachNavSecretaria();
     attachGestaoHandlers();
   } else {
@@ -1307,7 +1371,7 @@ function renderLinhaContribuicao(c, comComunidade) {
         <span>${c.data_pagamento.split("-").reverse().join("/")} · ${formaLabel}${c.meses_referencia ? " · " + escapeHtml(c.meses_referencia) : ""}${c.lancado_por_nome ? " · lançado por " + escapeHtml(c.lancado_por_nome) : ""}</span>
         ${
           // agente só pode estornar o que ele mesmo lançou (o servidor também confere)
-          state.usuario.perfil !== "agente" || c.lancado_por === state.usuario.id
+          state.usuario.perfil !== "paroco" && (state.usuario.perfil !== "agente" || c.lancado_por === state.usuario.id)
             ? `<button type="button" class="link-sel" data-estornar-id="${c.id}" style="color:var(--brick); font-size:11px;">estornar</button>`
             : ""
         }
@@ -1336,6 +1400,11 @@ async function estornarLancamento(id, btn) {
     alert(err.message);
     btn.disabled = false;
   }
+}
+
+function botaoEstornarOfertorio(id) {
+  if (state.usuario.perfil === "paroco") return ""; // o pároco só consulta
+  return `<button type="button" class="link-sel" data-estornar-oferta-id="${id}" style="color:var(--brick); font-size:11px; margin-left:8px;">estornar</button>`;
 }
 
 /* Estorno do ofertório: confirmação + motivo; fica registrado no histórico. */
@@ -1931,7 +2000,7 @@ async function carregarListaOfertorio() {
             (o) => `
         <div class="linha-lista">
           <span>${o.data_missa.split("-").reverse().join("/")}${o.lancado_por_nome ? ` <span class="muted">· lançado por ${escapeHtml(o.lancado_por_nome)}</span>` : ""}</span>
-          <span class="mono">${fmtMoeda(o.valor_dinheiro)} <button type="button" class="link-sel" data-estornar-oferta-id="${o.id}" style="color:var(--brick); font-size:11px; margin-left:8px;">estornar</button></span>
+          <span class="mono">${fmtMoeda(o.valor_dinheiro)} ${botaoEstornarOfertorio(o.id)}</span>
         </div>`
           )
           .join("")
@@ -2108,8 +2177,10 @@ function renderNavSecretaria() {
     ["balanco", "Balanço"],
     ["estatisticas", "Estatísticas"],
     ["lancamentos", "Lançamentos"],
-    ["cadastros", "Cadastros"],
+    // o pároco só consulta: sem a tela de cadastros (editar, excluir, usuários, importação)
+    ...(state.usuario.perfil === "paroco" ? [] : [["cadastros", "Cadastros"]]),
     ["aniversarios", "Aniversariantes"],
+    ["atividades", "Atividades"],
   ];
   return `<nav class="tabs">${abas
     .map(([id, label]) => `<button data-aba="${id}" class="${state.abaSecretaria === id ? "ativo" : ""}">${label}</button>`)
@@ -2128,12 +2199,15 @@ function attachNavSecretaria() {
 }
 
 function renderGestao() {
+  // o pároco só consulta: nunca cai na tela de Cadastros, nem por estado guardado
+  if (state.usuario.perfil === "paroco" && state.abaSecretaria === "cadastros") state.abaSecretaria = "consolidado";
   if (state.abaSecretaria === "consolidado") return renderConsolidado();
   if (state.abaSecretaria === "balanco") return renderBalanco();
   if (state.abaSecretaria === "estatisticas") return renderEstatisticas();
   if (state.abaSecretaria === "lancamentos") return renderLancamentos();
   if (state.abaSecretaria === "cadastros") return renderCadastros();
   if (state.abaSecretaria === "aniversarios") return renderAbaAniversarios(true);
+  if (state.abaSecretaria === "atividades") return renderAtividades();
   return "";
 }
 
@@ -2144,6 +2218,51 @@ function attachGestaoHandlers() {
   if (state.abaSecretaria === "lancamentos") attachLancamentosHandlers();
   if (state.abaSecretaria === "cadastros") attachCadastrosHandlers();
   if (state.abaSecretaria === "aniversarios") attachAbaAniversariosHandlers(true);
+  if (state.abaSecretaria === "atividades") attachAtividadesHandlers();
+}
+
+/* ---------- Registro de atividades (secretaria e pároco) ---------- */
+function renderAtividades() {
+  return `
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
+        <h2 style="margin:0;">Registro de atividades</h2>
+        <select id="at-tipo" style="width:auto; padding:6px 10px; border:1px solid var(--cream-line); border-radius:8px;">
+          <option value="todos">Tudo</option>
+          <option value="cadastros">Cadastros de dizimistas</option>
+          <option value="usuarios">Usuários</option>
+        </select>
+      </div>
+      <p class="muted">Quem fez o quê nos cadastros de dizimistas e na gestão de usuários. O registro não guarda dados pessoais (telefone, endereço, CPF) nem senhas.</p>
+      <div id="at-lista">Carregando...</div>
+    </div>`;
+}
+
+async function carregarAtividades() {
+  const container = document.getElementById("at-lista");
+  if (!container) return;
+  const perfis = { secretaria: "secretaria", paroco: "pároco", tesoureiro: "tesoureiro", agente: "agente" };
+  try {
+    const lista = await api("/atividades?limite=100&tipo=" + document.getElementById("at-tipo").value);
+    container.innerHTML = lista.length
+      ? lista
+          .map(
+            (a) => `
+        <div class="linha-lista" style="flex-direction:column; align-items:flex-start; gap:2px;">
+          <div style="font-size:13px;">${escapeHtml(a.descricao)}</div>
+          <div class="muted" style="font-size:11px;">por ${escapeHtml(a.usuario_nome || "—")}${a.usuario_perfil ? ` (${escapeHtml(perfis[a.usuario_perfil] || a.usuario_perfil)})` : ""} · ${escapeHtml(fmtDataHoraBR(a.quando))}</div>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Nada registrado ainda.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function attachAtividadesHandlers() {
+  carregarAtividades();
+  document.getElementById("at-tipo").addEventListener("change", carregarAtividades);
 }
 
 /* ---------- Lançamentos detalhados (secretaria) ---------- */
@@ -2167,7 +2286,7 @@ function renderLancamentos() {
       <div id="lc-ofertorio">Carregando...</div>
     </div>
     ${
-      state.usuario.perfil === "secretaria"
+      ["secretaria", "paroco"].includes(state.usuario.perfil)
         ? `<div class="cartao">
             <h2>Estornos registrados</h2>
             <p class="muted">Lançamentos desfeitos: quem estornou, quando e por quê. Eles não entram mais nos totais.</p>
@@ -2206,7 +2325,7 @@ async function carregarOfertoriosLancados() {
             (o) => `
         <div class="linha-lista">
           <span>${fmtDataBR(o.data_missa)}${!comunidadeId ? ` <span class="muted">· ${escapeHtml(nomeComunidade(o.comunidade_id))}</span>` : ""}${o.lancado_por_nome ? ` <span class="muted">· lançado por ${escapeHtml(o.lancado_por_nome)}</span>` : ""}</span>
-          <span class="mono">${fmtMoeda(o.valor_dinheiro)} <button type="button" class="link-sel" data-estornar-oferta-id="${o.id}" style="color:var(--brick); font-size:11px; margin-left:8px;">estornar</button></span>
+          <span class="mono">${fmtMoeda(o.valor_dinheiro)} ${botaoEstornarOfertorio(o.id)}</span>
         </div>`
           )
           .join("")
@@ -3374,7 +3493,7 @@ async function carregarCadastroUsuarios() {
         <div class="linha-lista">
           <span>
             ${escapeHtml(u.nome)}
-            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria/pároco" : (u.perfil === "agente" ? "agente · " : "") + escapeHtml(nomeComunidade(u.comunidade_id) || "sem comunidade")}${!u.ativo ? " · inativo" : ""}</span>
+            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria" : u.perfil === "paroco" ? "pároco (somente consulta)" : (u.perfil === "agente" ? "agente · " : "") + escapeHtml(nomeComunidade(u.comunidade_id) || "sem comunidade")}${!u.ativo ? " · inativo" : ""}</span>
           </span>
           <button class="link-sel" data-id="${u.id}">editar</button>
         </div>`
@@ -3428,7 +3547,8 @@ function montarFormUsuario(usuarioExistente) {
             <label>Perfil *</label>
             <select id="cu-perfil" ${editando ? "disabled" : ""}>
               <option value="tesoureiro" ${editando && usuarioExistente.perfil === "tesoureiro" ? "selected" : ""}>Tesoureiro</option>
-              <option value="secretaria" ${editando && usuarioExistente.perfil === "secretaria" ? "selected" : ""}>Secretaria / pároco (geral)</option>
+              <option value="secretaria" ${editando && usuarioExistente.perfil === "secretaria" ? "selected" : ""}>Secretaria (geral, gerencia tudo)</option>
+              <option value="paroco" ${editando && usuarioExistente.perfil === "paroco" ? "selected" : ""}>Pároco (geral, somente consulta)</option>
               <option value="agente" ${editando && usuarioExistente.perfil === "agente" ? "selected" : ""}>Agente (cadastra e lança na própria comunidade)</option>
             </select>
           </div>
@@ -3475,7 +3595,7 @@ function montarFormUsuario(usuarioExistente) {
   const selectPerfil = document.getElementById("cu-perfil");
   const campoComunidade = document.getElementById("cu-campo-comunidade");
   function atualizarVisibilidadeComunidade() {
-    campoComunidade.style.display = selectPerfil.value !== "secretaria" ? "" : "none";
+    campoComunidade.style.display = ["tesoureiro", "agente"].includes(selectPerfil.value) ? "" : "none";
   }
   atualizarVisibilidadeComunidade();
   selectPerfil.addEventListener("change", atualizarVisibilidadeComunidade);
@@ -3495,7 +3615,7 @@ function montarFormUsuario(usuarioExistente) {
           nome: document.getElementById("cu-nome").value.trim(),
           ativo: document.getElementById("cu-ativo").checked,
         };
-        if (perfil !== "secretaria") corpo.comunidade_id = Number(document.getElementById("cu-comunidade").value);
+        if (["tesoureiro", "agente"].includes(perfil)) corpo.comunidade_id = Number(document.getElementById("cu-comunidade").value);
         if (senha) corpo.senha = senha;
         await api(`/usuarios/${usuarioExistente.id}`, { method: "PATCH", body: corpo });
         sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
@@ -3505,7 +3625,7 @@ function montarFormUsuario(usuarioExistente) {
           login: document.getElementById("cu-login").value.trim(),
           senha,
           perfil,
-          comunidade_id: perfil !== "secretaria" ? Number(document.getElementById("cu-comunidade").value) : null,
+          comunidade_id: ["tesoureiro", "agente"].includes(perfil) ? Number(document.getElementById("cu-comunidade").value) : null,
         };
         await api("/usuarios", { method: "POST", body: corpo });
         sucessoDiv.innerHTML = `<span class="carimbo">Criado ✓</span>`;
