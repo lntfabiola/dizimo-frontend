@@ -571,7 +571,7 @@ async function api(path, opts = {}) {
     logout();
     throw new Error("Sessão expirada. Faça login novamente.");
   }
-  if (!res.ok) throw new Error(await mensagemDeErroHttp(res));
+  if (!res.ok) throw await erroDeHttp(res);
   if (res.status === 204) return null;
   return res.json();
 }
@@ -597,13 +597,17 @@ const NOMES_CAMPOS = {
 /* Transforma a resposta de erro do servidor numa frase legível. O servidor devolve
    texto simples nos erros que a gente escreveu e uma lista técnica nos erros de
    validação (campo inválido) — essa lista vira "Valor: valor acima do limite...". */
-async function mensagemDeErroHttp(res) {
+async function erroDeHttp(res) {
   let msg = "Erro no servidor (" + res.status + "). Tente de novo; se continuar, avise quem cuida do sistema.";
+  let detalhe = null;
   try {
     const corpo = await res.json();
     const d = corpo && corpo.detail;
+    detalhe = d === undefined ? null : d;
     if (typeof d === "string") {
       msg = d;
+    } else if (d && typeof d === "object" && !Array.isArray(d) && d.mensagem) {
+      msg = d.mensagem; // erros estruturados (ex: possível cadastro duplicado)
     } else if (Array.isArray(d) && d.length) {
       msg = d
         .map((it) => {
@@ -615,7 +619,39 @@ async function mensagemDeErroHttp(res) {
         .join(" · ");
     }
   } catch (e) {}
-  return msg;
+  const erro = new Error(msg);
+  erro.status = res.status;
+  erro.detalhe = detalhe;
+  return erro;
+}
+
+/* Cadastro/edição de dizimista: se o servidor achar que pode ser alguém que já existe,
+   mostra quem é e pergunta; só repete o envio se a pessoa confirmar que é outra. */
+async function enviarDizimistaConfirmandoDuplicado(metodo, caminho, corpo) {
+  try {
+    return await api(caminho, { method: metodo, body: { ...corpo } });
+  } catch (err) {
+    const d = err.detalhe;
+    if (err.status !== 409 || !d || typeof d !== "object" || !Array.isArray(d.similares)) throw err;
+    const podeForcar = d.codigo === "possivel_duplicado" || (d.codigo === "duplicado_bloqueado" && state.usuario.perfil === "secretaria");
+    if (!podeForcar) throw err; // tesoureiro/agente: só a mensagem de bloqueio
+    const lista = d.similares
+      .map(
+        (x) =>
+          `• ${x.nome} — código ${x.codigo || x.id}, ${nomeComunidade(x.comunidade_id)}` +
+          (x.data_nascimento ? `, nascimento ${fmtDataBR(x.data_nascimento)}` : "") +
+          ` (${x.motivo})`
+      )
+      .join("\n");
+    if (!confirm(`${d.mensagem}
+
+${lista}
+
+É OUTRA pessoa mesmo? OK = cadastrar assim mesmo · Cancelar = não salvar`)) {
+      throw new Error("Não foi salvo — confira o cadastro que já existe.");
+    }
+    return api(caminho, { method: metodo, body: { ...corpo, confirmar_duplicado: true } });
+  }
 }
 
 async function apiLogin(login, senha) {
@@ -624,7 +660,7 @@ async function apiLogin(login, senha) {
   form.append("password", senha);
   const res = await fetchComAviso(API_BASE + "/auth/login", { method: "POST", body: form });
   if (res.status === 401) throw new Error("Login ou senha incorretos");
-  if (!res.ok) throw new Error(await mensagemDeErroHttp(res)); // ex: 429 "Muitas tentativas..."
+  if (!res.ok) throw await erroDeHttp(res); // ex: 429 "Muitas tentativas..."
   return res.json();
 }
 
@@ -664,7 +700,7 @@ async function apiComTotal(path) {
     logout();
     throw new Error("Sessão expirada. Faça login novamente.");
   }
-  if (!res.ok) throw new Error(await mensagemDeErroHttp(res));
+  if (!res.ok) throw await erroDeHttp(res);
   const itens = await res.json();
   const total = Number(res.headers.get("X-Total-Count")) || itens.length;
   return { itens, total };
@@ -1224,7 +1260,7 @@ function renderFormularioNovoDizimista(comSeletorComunidade) {
           : ""
       }
       <div class="grid2">
-        <div class="campo"><label>Data de nascimento</label><input type="date" id="nd-nascimento" /></div>
+        <div class="campo"><label>Data de nascimento *</label><input type="date" id="nd-nascimento" required max="${hojeISO()}" /></div>
         <div class="campo"><label>Telefone</label><input type="text" id="nd-telefone" /></div>
       </div>
       <div class="grid2">
@@ -1347,7 +1383,7 @@ function attachFormularioNovoDizimistaHandlers(comunidadeIdFixo, aoSalvar) {
     botao.disabled = true; // evita cadastrar a mesma pessoa duas vezes com um duplo clique
     botao.textContent = "Cadastrando...";
     try {
-      const resultado = await api("/dizimistas", { method: "POST", body: corpo });
+      const resultado = await enviarDizimistaConfirmandoDuplicado("POST", "/dizimistas", corpo);
       cadastradosSessao.unshift({ nome: resultado.nome, codigo: resultado.codigo });
       renderSessao();
       sucessoDiv.innerHTML = `<span class="carimbo">Cadastrado ✓ — código ${escapeHtml(resultado.codigo)}</span>`;
@@ -2868,7 +2904,7 @@ async function carregarFormEdicaoDizimista() {
             </div>
           </div>
           <div class="grid2">
-            <div class="campo"><label>Data de nascimento</label><input type="date" id="ed-nascimento" value="${dizimista.data_nascimento || ""}" /></div>
+            <div class="campo"><label>Data de nascimento${dizimista.data_nascimento ? " *" : ""}</label><input type="date" id="ed-nascimento" value="${dizimista.data_nascimento || ""}" ${dizimista.data_nascimento ? "required" : ""} max="${hojeISO()}" /></div>
             <div class="campo"><label>Telefone</label><input type="text" id="ed-telefone" value="${escapeHtml(dizimista.telefone || "")}" /></div>
           </div>
           <div class="grid2">
@@ -2936,7 +2972,7 @@ async function carregarFormEdicaoDizimista() {
       };
       if (cpfDigitado) corpo.cpf = cpfDigitado; // só manda se a secretaria digitou algo novo
       try {
-        await api(`/dizimistas/${dizimista.id}`, { method: "PATCH", body: corpo });
+        await enviarDizimistaConfirmandoDuplicado("PATCH", `/dizimistas/${dizimista.id}`, corpo);
         sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
       } catch (err) {
         erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
