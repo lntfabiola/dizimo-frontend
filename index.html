@@ -529,8 +529,6 @@ const state = {
   usuario: null,
   comunidades: [],
   abaTesoureiro: "dizimo",
-  // agente não tem comunidade fixa: escolhe em qual está lançando (lembrado entre sessões)
-  comunidadeAgente: (() => { try { return localStorage.getItem("dizimo_comunidade_agente") || ""; } catch (e) { return ""; } })(),
   periodoAniversario: "semana",
   dizimistaSelecionado: null,
   dizimistaCompletando: null, // agente: dizimista cujo cadastro está sendo completado
@@ -777,6 +775,28 @@ async function abrirPerfilDizimista(id) {
         </div>`
       )
       .join("");
+    if (d.visao_restrita) {
+      const faltam = d.faltam || [];
+      modal.innerHTML = `
+        <div class="perfil-head">
+          <div>
+            <h3 class="serif">${escapeHtml(d.nome)}</h3>
+            <div class="muted" style="font-size:12px; margin-top:2px;">
+              <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> · ${escapeHtml(d.comunidade_nome)} ${statusChip}
+            </div>
+          </div>
+          <button class="perfil-close" id="perfil-close" aria-label="Fechar">✕</button>
+        </div>
+        <div class="perfil-body">
+          <div class="vazio" style="text-align:left;">Dados pessoais e histórico de contribuições ficam disponíveis só para a secretaria e para o tesoureiro da comunidade desta pessoa.</div>
+          <p style="margin:12px 0 0; font-size:13px;">${
+            faltam.length ? `<b>Cadastro incompleto</b> — falta: ${faltam.map(escapeHtml).join(", ")}.` : "Cadastro completo."
+          }</p>
+        </div>`;
+      modal.querySelector("#perfil-close").addEventListener("click", fecharPerfilDizimista);
+      return;
+    }
+    const semHistorico = d.historico_visivel === false; // agente: vê os dados, mas não os valores por pessoa
     modal.innerHTML = `
       <div class="perfil-head">
         <div>
@@ -788,21 +808,25 @@ async function abrirPerfilDizimista(id) {
         <button class="perfil-close" id="perfil-close" aria-label="Fechar">✕</button>
       </div>
       <div class="perfil-body">
-        <div class="metricas" style="margin-bottom:16px;">
+        ${semHistorico ? "" : `<div class="metricas" style="margin-bottom:16px;">
           <div class="metrica"><div class="label">Total contribuído</div><div class="valor">${fmtMoeda(d.total_contribuido)}</div></div>
           <div class="metrica"><div class="label">Neste ano</div><div class="valor">${fmtMoeda(d.total_ano_atual)}</div></div>
           <div class="metrica"><div class="label">Lançamentos</div><div class="valor">${d.qtd_contribuicoes}</div></div>
-        </div>
+        </div>`}
         <div class="perfil-grid">
           ${campo("CPF", escapeHtml(d.cpf_mascarado))}
           ${campo("Telefone", escapeHtml(d.telefone))}
           ${campo("Nascimento", d.data_nascimento ? fmtDataBR(d.data_nascimento) : "—")}
           ${campo("CEP", escapeHtml(d.cep))}
           ${campo("Endereço", escapeHtml(d.endereco))}
-          ${campo("Última contribuição", d.ultima_contribuicao ? fmtDataBR(d.ultima_contribuicao) : "nunca contribuiu")}
+          ${semHistorico ? "" : campo("Última contribuição", d.ultima_contribuicao ? fmtDataBR(d.ultima_contribuicao) : "nunca contribuiu")}
         </div>
-        <h2 style="margin:18px 0 6px;">Histórico de contribuições</h2>
-        <div class="perfil-hist">${hist || '<div class="vazio">Nenhuma contribuição lançada.</div>'}</div>
+        ${
+          semHistorico
+            ? `<div class="vazio" style="text-align:left; margin-top:14px;">O histórico de valores por pessoa é visível só para a secretaria e para o tesoureiro da comunidade.</div>`
+            : `<h2 style="margin:18px 0 6px;">Histórico de contribuições</h2>
+        <div class="perfil-hist">${hist || '<div class="vazio">Nenhuma contribuição lançada.</div>'}</div>`
+        }
       </div>`;
     modal.querySelector("#perfil-close").addEventListener("click", fecharPerfilDizimista);
   } catch (err) {
@@ -905,23 +929,17 @@ function ehAgente() {
   return state.usuario && state.usuario.perfil === "agente";
 }
 
-/* Comunidade em que o dinheiro está sendo recebido agora: a do tesoureiro,
-   ou a que o agente escolheu (null enquanto ele não escolher). */
+/* Comunidade em que o dinheiro é recebido: a do próprio tesoureiro/agente. Mesmo quando vem
+   um dizimista de outra comunidade, o dízimo é lançado aqui (o servidor também confere). */
 function comunidadeDeLancamento() {
-  if (ehAgente()) {
-    const id = Number(state.comunidadeAgente);
-    return state.comunidades.some((c) => c.id === id) ? id : null;
-  }
-  return state.usuario.comunidade_id;
+  return state.usuario.comunidade_id || null;
 }
 
 function renderShell() {
   const ehSecretaria = state.usuario.perfil === "secretaria";
   const subtitulo = ehSecretaria
     ? "secretaria / pároco"
-    : ehAgente()
-      ? "agente"
-      : nomeComunidade(state.usuario.comunidade_id);
+    : (ehAgente() ? "agente · " : "") + (nomeComunidade(state.usuario.comunidade_id) || "sem comunidade");
 
   return `
     <header class="topbar">
@@ -971,7 +989,13 @@ function attachShellHandlers() {
    VISÃO TESOUREIRO
    ========================================================= */
 function renderNavTesoureiro() {
-  if (ehAgente()) return ""; // agente só tem a tela de cadastrar/lançar, sem abas
+  if (ehAgente()) {
+    // agente: cadastrar/lançar e ver os aniversariantes da comunidade (sem relatórios)
+    const abasAgente = [["dizimo", "Dízimo"], ["aniversarios", "Aniversários"]];
+    return `<nav class="tabs">${abasAgente
+      .map(([id, label]) => `<button data-aba="${id}" class="${state.abaTesoureiro === id ? "ativo" : ""}">${label}</button>`)
+      .join("")}</nav>`;
+  }
   const abas = [
     ["dizimo", "Dízimo"],
     ["ofertorio", "Ofertório"],
@@ -1071,7 +1095,7 @@ function renderAbaDizimo() {
     return renderFormularioContribuicao(state.dizimistaSelecionado, false);
   }
   return `
-    ${ehAgente() ? renderSeletorComunidadeAgente() : ""}
+    ${ehAgente() && !state.usuario.comunidade_id ? `<div class="erro" style="margin-bottom:14px;">Seu login de agente não está ligado a uma comunidade. Peça à secretaria para ajustar em Cadastros → Usuários.</div>` : ""}
     <div class="cartao">
       <h2>Buscar dizimista</h2>
       <div class="campo">
@@ -1082,7 +1106,7 @@ function renderAbaDizimo() {
     </div>
     <div class="cartao">
       <h2>Novo dizimista</h2>
-      ${renderFormularioNovoDizimista(ehAgente())}
+      ${renderFormularioNovoDizimista()}
     </div>
     <div class="cartao">
       <h2>${ehAgente() ? "Meus últimos lançamentos de dízimo" : "Últimos lançamentos de dízimo"}</h2>
@@ -1090,34 +1114,6 @@ function renderAbaDizimo() {
     </div>
     ${ehAgente() ? "" : renderCartaoResumoDia(false)}
   `;
-}
-
-/* Agente não pertence a uma comunidade: escolhe onde está recebendo o dízimo.
-   O lançamento fica registrado na comunidade escolhida. */
-function renderSeletorComunidadeAgente() {
-  const atual = comunidadeDeLancamento();
-  return `
-    <div class="cartao" style="${atual ? "" : "border:1.5px solid var(--brick);"}">
-      <div class="campo" style="margin:0;">
-        <label>Comunidade onde você está lançando agora *</label>
-        <select id="agente-comunidade">
-          <option value="" ${atual ? "" : "selected"}>Selecione a comunidade...</option>
-          ${state.comunidades.map((c) => `<option value="${c.id}" ${c.id === atual ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join("")}
-        </select>
-      </div>
-      <p class="muted" style="margin:6px 0 0;">O dízimo lançado fica na comunidade escolhida, mesmo que o dizimista seja de outra.</p>
-    </div>`;
-}
-
-function attachSeletorComunidadeAgente() {
-  const sel = document.getElementById("agente-comunidade");
-  if (!sel) return;
-  sel.addEventListener("change", () => {
-    state.comunidadeAgente = sel.value;
-    try { localStorage.setItem("dizimo_comunidade_agente", sel.value); } catch (e) {}
-    document.getElementById("conteudo").innerHTML = renderTesoureiro();
-    attachTesoureiroHandlers();
-  });
 }
 
 /* ---------- Resumo do dia (PDF) — tesoureiro e secretaria ---------- */
@@ -1518,12 +1514,12 @@ function attachAbaDizimoHandlers() {
               (d) => `
           <div class="linha-lista">
             <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}${
-              ehAgente() || d.comunidade_id !== comunidadeDeLancamento()
+              d.comunidade_id !== comunidadeDeLancamento()
                 ? ` <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span>`
                 : ""
-            }</span>
+            }${d.status && d.status !== "ativo" ? ` <span class="chip alerta">${escapeHtml(d.status)}</span>` : ""}</span>
             <span style="display:flex; gap:12px; flex:none;">
-              ${podeCompletarCadastro(d) ? `<button class="link-sel" data-completar-id="${d.id}">completar cadastro</button>` : ""}
+              ${podeCompletarCadastro(d) ? `<button class="link-sel" data-completar-id="${d.id}">${ehAgente() ? "completar cadastro" : "editar cadastro"}</button>` : ""}
               <button class="link-sel" data-id="${d.id}">selecionar</button>
             </span>
           </div>`
@@ -1556,7 +1552,6 @@ function attachAbaDizimoHandlers() {
 
   carregarListaContribuicoes();
   attachResumoDiaHandlers();
-  attachSeletorComunidadeAgente();
 
   document.getElementById("btn-avulso").addEventListener("click", () => {
     state.dizimistaSelecionado = "avulso";
@@ -1564,7 +1559,7 @@ function attachAbaDizimoHandlers() {
     attachTesoureiroHandlers();
   });
 
-  attachFormularioNovoDizimistaHandlers(ehAgente() ? null : state.usuario.comunidade_id, () => {
+  attachFormularioNovoDizimistaHandlers(state.usuario.comunidade_id, () => {
     document.getElementById("conteudo").innerHTML = renderTesoureiro();
     attachTesoureiroHandlers();
   });
@@ -1572,14 +1567,14 @@ function attachAbaDizimoHandlers() {
 
 /* Dados que a paróquia quer ter de cada dizimista. O CPF fica de fora de propósito
    (ainda não é coletado). Devolve os rótulos do que está faltando. */
-/* Quem pode abrir a tela de completar cadastro: o agente (qualquer comunidade) e o
-   tesoureiro (só da própria comunidade — o servidor também confere). */
+/* Quem pode abrir a tela de completar cadastro: agente e tesoureiro, só da própria
+   comunidade (o servidor também confere). */
 function podeCompletarCadastro(d) {
-  if (ehAgente()) return true;
-  return state.usuario.perfil === "tesoureiro" && d.comunidade_id === state.usuario.comunidade_id;
+  return ["tesoureiro", "agente"].includes(state.usuario.perfil) && d.comunidade_id === state.usuario.comunidade_id;
 }
 
 function camposFaltantes(d) {
+  if (Array.isArray(d.faltam)) return d.faltam; // vem calculado pelo servidor
   const vazio = (v) => v === null || v === undefined || String(v).trim() === "";
   const faltam = [];
   if (vazio(d.telefone)) faltam.push("telefone");
@@ -1614,10 +1609,13 @@ function abrirCompletarCadastro(dizimista, voltarPara) {
 function renderFormularioCompletarCadastro(d) {
   const falta = camposFaltantes(d);
   const faltando = (rotulo) => (falta.includes(rotulo) ? " faltando" : "");
+  // visão restrita (agente): os dados não vêm; só sabemos se já estão preenchidos
+  const jaTem = (rotulo) => !!d.visao_restrita && !falta.includes(rotulo);
+  const dica = (rotulo) => (jaTem(rotulo) ? "já preenchido — digite só para trocar" : "");
   return `
     <div class="cartao">
       <button class="link-sel" id="ag-voltar" style="margin-bottom:10px;">&larr; voltar</button>
-      <h2>Completar cadastro</h2>
+      <h2>${ehAgente() ? "Completar cadastro" : "Editar cadastro"}</h2>
       <p class="muted"><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> ${escapeHtml(d.nome)} <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span></p>
       ${
         falta.length
@@ -1627,17 +1625,24 @@ function renderFormularioCompletarCadastro(d) {
       <p class="muted">Informações que já estão no cadastro podem ser trocadas, mas não apagadas.</p>
       <form id="form-completar-cadastro">
         <div class="campo"><label>Nome completo *</label><input type="text" id="ag-nome" value="${escapeHtml(d.nome)}" required /></div>
+        ${
+          ehAgente()
+            ? ""
+            : `<div class="campo"><label>Situação</label>
+                <select id="ag-status">${["ativo", "inativo", "falecido"].map((x) => `<option value="${x}" ${x === d.status ? "selected" : ""}>${x}</option>`).join("")}</select>
+              </div>`
+        }
         <div class="campo"><label>CPF</label><input type="text" id="ag-cpf" placeholder="${escapeHtml(d.cpf_mascarado || "000.000.000-00")}" /></div>
         <div class="grid2">
-          <div class="campo${faltando("data de nascimento")}"><label>Data de nascimento *</label><input type="date" id="ag-nascimento" value="${d.data_nascimento || ""}" required max="${hojeISO()}" /></div>
-          <div class="campo${faltando("telefone")}"><label>Telefone</label><input type="text" id="ag-telefone" value="${escapeHtml(d.telefone || "")}" /></div>
+          <div class="campo${faltando("data de nascimento")}"><label>Data de nascimento${jaTem("data de nascimento") ? ' <span class="muted">(já preenchida — só para trocar)</span>' : " *"}</label><input type="date" id="ag-nascimento" value="${d.data_nascimento || ""}" max="${hojeISO()}" /></div>
+          <div class="campo${faltando("telefone")}"><label>Telefone</label><input type="text" id="ag-telefone" value="${escapeHtml(d.telefone || "")}" placeholder="${dica("telefone")}" /></div>
         </div>
         <div class="grid2">
-          <div class="campo${faltando("CEP")}"><label>CEP</label><input type="text" id="ag-cep" value="${escapeHtml(d.cep || "")}" placeholder="00000-000" /></div>
+          <div class="campo${faltando("CEP")}"><label>CEP</label><input type="text" id="ag-cep" value="${escapeHtml(d.cep || "")}" placeholder="${jaTem("CEP") ? dica("CEP") : "00000-000"}" /></div>
           <div class="campo"><label>Número</label><input type="text" id="ag-numero" /></div>
         </div>
         <div id="ag-cep-status" class="muted" style="margin:-6px 0 10px;"></div>
-        <div class="campo"><label>Endereço</label><input type="text" id="ag-endereco" value="${escapeHtml(d.endereco || "")}" /></div>
+        <div class="campo"><label>Endereço</label><input type="text" id="ag-endereco" value="${escapeHtml(d.endereco || "")}" placeholder="${d.visao_restrita && jaTem("CEP") ? "preencha só se precisar trocar" : ""}" /></div>
         <div id="ag-erro"></div>
         <div id="ag-sucesso"></div>
         <button type="submit" class="btn full">Salvar cadastro</button>
@@ -1669,11 +1674,17 @@ function attachFormularioCompletarCadastroHandlers() {
     sucessoDiv.innerHTML = "";
     const valor = (id) => document.getElementById(id).value.trim();
     // só manda o que tem conteúdo: o agente completa/corrige, não apaga
-    const corpo = { nome: valor("ag-nome"), data_nascimento: valor("ag-nascimento") };
+    const corpo = { nome: valor("ag-nome") };
+    if (valor("ag-nascimento")) corpo.data_nascimento = valor("ag-nascimento");
     if (valor("ag-telefone")) corpo.telefone = valor("ag-telefone");
     if (valor("ag-cep")) corpo.cep = valor("ag-cep");
     if (valor("ag-endereco")) corpo.endereco = valor("ag-endereco");
     if (valor("ag-cpf")) corpo.cpf = valor("ag-cpf");
+    const selSituacao = document.getElementById("ag-status");
+    if (selSituacao && selSituacao.value !== state.dizimistaCompletando.status) {
+      if (selSituacao.value !== "ativo" && !confirm(`Marcar ${state.dizimistaCompletando.nome} como "${selSituacao.value}"? Ela deixa de contar nos dizimistas ativos e na taxa de adesão.`)) return;
+      corpo.status = selSituacao.value;
+    }
 
     const botao = e.target.querySelector('button[type="submit"]');
     if (botao.disabled) return;
@@ -1706,7 +1717,6 @@ function renderFormularioContribuicao(dizimista, avulso) {
           ? ` <span class="muted">· cadastrado em ${escapeHtml(nomeComunidade(dizimista.comunidade_id))}</span>`
           : ""
       }</p>` : ""}
-      ${ehAgente() ? `<p class="muted">Lançando em: <b>${escapeHtml(nomeComunidade(comunidadeDeLancamento()) || "— escolha a comunidade na tela anterior")}</b></p>` : ""}
       ${!avulso ? renderAvisoCadastroIncompleto(dizimista) : ""}
       <form id="form-contribuicao">
         ${avulso ? `<div class="campo"><label>Nome do doador *</label><input type="text" id="ct-nome-avulso" required /></div>` : ""}
@@ -3239,7 +3249,7 @@ async function carregarCadastroUsuarios() {
         <div class="linha-lista">
           <span>
             ${escapeHtml(u.nome)}
-            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria/pároco" : u.perfil === "agente" ? "agente" : escapeHtml(nomeComunidade(u.comunidade_id))}${!u.ativo ? " · inativo" : ""}</span>
+            <span class="muted"> · ${u.login} · ${u.perfil === "secretaria" ? "secretaria/pároco" : (u.perfil === "agente" ? "agente · " : "") + escapeHtml(nomeComunidade(u.comunidade_id) || "sem comunidade")}${!u.ativo ? " · inativo" : ""}</span>
           </span>
           <button class="link-sel" data-id="${u.id}">editar</button>
         </div>`
@@ -3294,7 +3304,7 @@ function montarFormUsuario(usuarioExistente) {
             <select id="cu-perfil" ${editando ? "disabled" : ""}>
               <option value="tesoureiro" ${editando && usuarioExistente.perfil === "tesoureiro" ? "selected" : ""}>Tesoureiro</option>
               <option value="secretaria" ${editando && usuarioExistente.perfil === "secretaria" ? "selected" : ""}>Secretaria / pároco (geral)</option>
-              <option value="agente" ${editando && usuarioExistente.perfil === "agente" ? "selected" : ""}>Agente (cadastra e lança em qualquer comunidade)</option>
+              <option value="agente" ${editando && usuarioExistente.perfil === "agente" ? "selected" : ""}>Agente (cadastra e lança na própria comunidade)</option>
             </select>
           </div>
           <div class="campo" id="cu-campo-comunidade">
@@ -3340,7 +3350,7 @@ function montarFormUsuario(usuarioExistente) {
   const selectPerfil = document.getElementById("cu-perfil");
   const campoComunidade = document.getElementById("cu-campo-comunidade");
   function atualizarVisibilidadeComunidade() {
-    campoComunidade.style.display = selectPerfil.value === "tesoureiro" ? "" : "none";
+    campoComunidade.style.display = selectPerfil.value !== "secretaria" ? "" : "none";
   }
   atualizarVisibilidadeComunidade();
   selectPerfil.addEventListener("change", atualizarVisibilidadeComunidade);
@@ -3360,7 +3370,7 @@ function montarFormUsuario(usuarioExistente) {
           nome: document.getElementById("cu-nome").value.trim(),
           ativo: document.getElementById("cu-ativo").checked,
         };
-        if (perfil === "tesoureiro") corpo.comunidade_id = Number(document.getElementById("cu-comunidade").value);
+        if (perfil !== "secretaria") corpo.comunidade_id = Number(document.getElementById("cu-comunidade").value);
         if (senha) corpo.senha = senha;
         await api(`/usuarios/${usuarioExistente.id}`, { method: "PATCH", body: corpo });
         sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
@@ -3370,7 +3380,7 @@ function montarFormUsuario(usuarioExistente) {
           login: document.getElementById("cu-login").value.trim(),
           senha,
           perfil,
-          comunidade_id: perfil === "tesoureiro" ? Number(document.getElementById("cu-comunidade").value) : null,
+          comunidade_id: perfil !== "secretaria" ? Number(document.getElementById("cu-comunidade").value) : null,
         };
         await api("/usuarios", { method: "POST", body: corpo });
         sucessoDiv.innerHTML = `<span class="carimbo">Criado ✓</span>`;
