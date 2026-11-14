@@ -2228,7 +2228,10 @@ function _shellBalancoTendencia() {
       <div id="bl-grafico">Carregando...</div>
     </div>
     <div class="cartao">
-      <h2>Detalhamento</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Detalhamento</h2>
+        <button class="btn outline small" id="btn-pdf-balanco">Exportar PDF</button>
+      </div>
       <div id="bl-tabela"></div>
     </div>
   `;
@@ -2249,7 +2252,10 @@ function _shellBalancoComparativo() {
     <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Detalhamento</h2>
-        <button class="btn outline small" id="btn-exportar-comparativo">Exportar Excel</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn outline small" id="btn-pdf-balanco">Exportar PDF</button>
+          <button class="btn outline small" id="btn-exportar-comparativo">Exportar Excel</button>
+        </div>
       </div>
       <div id="bl-tabela"></div>
     </div>
@@ -2438,6 +2444,15 @@ async function carregarEntreComunidades(granularidade) {
 
 function attachBalancoHandlers() {
   carregarBalanco();
+  const btnPdf = document.getElementById("btn-pdf-balanco");
+  if (btnPdf) {
+    btnPdf.addEventListener("click", () => {
+      const granularidade = document.getElementById("bl-granularidade").value;
+      const comunidadeId = document.getElementById("bl-comunidade").value;
+      const url = `${API_BASE}/relatorios/balanco/pdf?granularidade=${granularidade}` + (comunidadeId ? `&comunidade_id=${comunidadeId}` : "");
+      baixarArquivoProtegido(btnPdf, url, `balanco-${granularidade}.pdf`, "Gerando PDF...");
+    });
+  }
   document.getElementById("bl-granularidade").addEventListener("change", () => {
     state.balancoGranularidade = document.getElementById("bl-granularidade").value;
     document.getElementById("conteudo").innerHTML = renderGestao();
@@ -2465,6 +2480,7 @@ function renderEstatisticas() {
           <input type="checkbox" id="est-separar-comunidade" ${state.estatisticasSepararComunidade ? "checked" : ""} style="width:auto;" />
           Separar por comunidade (uma linha por comunidade + total)
         </label>
+        <button type="button" class="btn outline small" id="btn-pdf-estatisticas">Exportar PDF</button>
         <button type="button" class="btn outline small" id="btn-exportar-estatisticas">Exportar Excel</button>
       </div>
     </div>
@@ -2476,12 +2492,15 @@ function renderEstatisticas() {
     <div class="cartao">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Inadimplentes</h2>
-        <select id="est-meses-inadimplente" style="width:auto; padding:6px 10px; border:1px solid var(--cream-line); border-radius:8px;">
-          <option value="1">Sem contribuir há 1 mês+</option>
-          <option value="2">Sem contribuir há 2 meses+</option>
-          <option value="3" selected>Sem contribuir há 3 meses+</option>
-          <option value="6">Sem contribuir há 6 meses+</option>
-        </select>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <select id="est-meses-inadimplente" style="width:auto; padding:6px 10px; border:1px solid var(--cream-line); border-radius:8px;">
+            <option value="1">Sem contribuir há 1 mês+</option>
+            <option value="2">Sem contribuir há 2 meses+</option>
+            <option value="3" selected>Sem contribuir há 3 meses+</option>
+            <option value="6">Sem contribuir há 6 meses+</option>
+          </select>
+          <button type="button" class="btn outline small" id="btn-pdf-inadimplentes">Exportar PDF</button>
+        </div>
       </div>
       <div id="est-inadimplentes">Carregando...</div>
     </div>
@@ -2593,6 +2612,19 @@ function attachEstatisticasHandlers() {
     if (chkSeparar.checked) params.set("separar_por_comunidade", "true");
     const url = `${API_BASE}/dizimistas/estatisticas/exportar?${params.toString()}`;
     baixarArquivoProtegido(btn, url, "estatisticas-dizimo.xlsx", "Gerando Excel...");
+  });
+  document.getElementById("btn-pdf-estatisticas").addEventListener("click", (e) => {
+    const params = new URLSearchParams();
+    const comunidadeId = document.getElementById("est-comunidade").value;
+    if (comunidadeId) params.set("comunidade_id", comunidadeId);
+    if (chkSeparar.checked) params.set("separar_por_comunidade", "true");
+    baixarArquivoProtegido(e.target, `${API_BASE}/relatorios/estatisticas/pdf?${params.toString()}`, "estatisticas-dizimo.pdf", "Gerando PDF...");
+  });
+  document.getElementById("btn-pdf-inadimplentes").addEventListener("click", (e) => {
+    const params = new URLSearchParams({ meses_sem_contribuir: document.getElementById("est-meses-inadimplente").value });
+    const comunidadeId = document.getElementById("est-comunidade").value;
+    if (comunidadeId) params.set("comunidade_id", comunidadeId);
+    baixarArquivoProtegido(e.target, `${API_BASE}/relatorios/inadimplentes/pdf?${params.toString()}`, "dizimistas-sem-contribuir.pdf", "Gerando PDF...");
   });
   document.getElementById("est-meses-inadimplente").value = String(state.inadimplentesMeses);
   document.getElementById("est-meses-inadimplente").addEventListener("change", () => {
