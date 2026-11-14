@@ -1475,12 +1475,11 @@ function attachAbaDizimoHandlers() {
   });
 }
 
-/* Dados que a paróquia quer ter de cada dizimista (mesmo critério da contagem
-   de cadastros incompletos). Devolve os rótulos do que está faltando. */
+/* Dados que a paróquia quer ter de cada dizimista. O CPF fica de fora de propósito
+   (ainda não é coletado). Devolve os rótulos do que está faltando. */
 function camposFaltantes(d) {
   const vazio = (v) => v === null || v === undefined || String(v).trim() === "";
   const faltam = [];
-  if (vazio(d.cpf_mascarado)) faltam.push("CPF");
   if (vazio(d.telefone)) faltam.push("telefone");
   if (vazio(d.cep)) faltam.push("CEP");
   if (vazio(d.data_nascimento)) faltam.push("data de nascimento");
