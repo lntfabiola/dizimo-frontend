@@ -467,6 +467,10 @@
     main { padding: 16px 12px 32px; }
   }
 
+  /* campo que falta preencher no cadastro */
+  .campo.faltando input { border-color: var(--gold); background: rgba(201,162,74,.12); }
+  .campo.faltando label { color: var(--gold-deep); }
+
   /* ---------- Aniversariantes ---------- */
   .cartao.an-cartao { padding: 14px 14px 8px; }
   .an-cabeca { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -989,6 +993,7 @@ function attachNavTesoureiro() {
     btn.addEventListener("click", () => {
       state.abaTesoureiro = btn.dataset.aba;
       state.dizimistaSelecionado = null;
+      state.dizimistaCompletando = null;
       document.getElementById("conteudo").innerHTML = renderTesoureiro();
       attachTesoureiroHandlers();
       document.querySelectorAll("nav.tabs button[data-aba]").forEach((b) => b.classList.toggle("ativo", b.dataset.aba === state.abaTesoureiro));
@@ -1445,7 +1450,7 @@ function attachAbaDizimoHandlers() {
                 : ""
             }</span>
             <span style="display:flex; gap:12px; flex:none;">
-              ${ehAgente() ? `<button class="link-sel" data-completar-id="${d.id}">completar cadastro</button>` : ""}
+              ${podeCompletarCadastro(d) ? `<button class="link-sel" data-completar-id="${d.id}">completar cadastro</button>` : ""}
               <button class="link-sel" data-id="${d.id}">selecionar</button>
             </span>
           </div>`
@@ -1494,6 +1499,13 @@ function attachAbaDizimoHandlers() {
 
 /* Dados que a paróquia quer ter de cada dizimista. O CPF fica de fora de propósito
    (ainda não é coletado). Devolve os rótulos do que está faltando. */
+/* Quem pode abrir a tela de completar cadastro: o agente (qualquer comunidade) e o
+   tesoureiro (só da própria comunidade — o servidor também confere). */
+function podeCompletarCadastro(d) {
+  if (ehAgente()) return true;
+  return state.usuario.perfil === "tesoureiro" && d.comunidade_id === state.usuario.comunidade_id;
+}
+
 function camposFaltantes(d) {
   const vazio = (v) => v === null || v === undefined || String(v).trim() === "";
   const faltam = [];
@@ -1510,10 +1522,10 @@ function renderAvisoCadastroIncompleto(dizimista) {
     <div id="aviso-cadastro-incompleto" role="alert" style="margin:10px 0 14px; padding:10px 12px; border:1.5px solid var(--gold); border-radius:10px; background:rgba(201,162,74,.14); font-size:13px;">
       <b>Cadastro incompleto</b> — falta: ${faltam.map(escapeHtml).join(", ")}.
       ${
-        ehAgente()
+        podeCompletarCadastro(dizimista)
           ? `<div class="muted" style="font-size:12px; margin-top:2px;">Aproveite para pedir esses dados à pessoa e complete o cadastro agora. O lançamento pode ser feito normalmente.</div>
              <button type="button" class="btn small" id="btn-completar-cadastro" style="margin-top:8px;">Completar cadastro</button>`
-          : `<div class="muted" style="font-size:12px; margin-top:2px;">Aproveite para pedir esses dados à pessoa e passe para a secretaria completar. O lançamento pode ser feito normalmente.</div>`
+          : `<div class="muted" style="font-size:12px; margin-top:2px;">Esse cadastro é de outra comunidade: peça os dados à pessoa e passe para quem cuida dela (ou para a secretaria) completar. O lançamento pode ser feito normalmente.</div>`
       }
     </div>`;
 }
@@ -1527,21 +1539,28 @@ function abrirCompletarCadastro(dizimista, voltarPara) {
 }
 
 function renderFormularioCompletarCadastro(d) {
+  const falta = camposFaltantes(d);
+  const faltando = (rotulo) => (falta.includes(rotulo) ? " faltando" : "");
   return `
     <div class="cartao">
       <button class="link-sel" id="ag-voltar" style="margin-bottom:10px;">&larr; voltar</button>
       <h2>Completar cadastro</h2>
       <p class="muted"><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> ${escapeHtml(d.nome)} <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span></p>
-      <p class="muted">Preencha o que estiver faltando ou corrija algum dado. Informações que já estão no cadastro podem ser trocadas, mas não apagadas.</p>
+      ${
+        falta.length
+          ? `<div role="alert" style="margin:8px 0 12px; padding:8px 12px; border:1.5px solid var(--gold); border-radius:10px; background:rgba(201,162,74,.14); font-size:13px;"><b>Falta preencher:</b> ${falta.map(escapeHtml).join(", ")}.</div>`
+          : `<p class="muted">Cadastro completo. Você pode corrigir algum dado, se precisar.</p>`
+      }
+      <p class="muted">Informações que já estão no cadastro podem ser trocadas, mas não apagadas.</p>
       <form id="form-completar-cadastro">
         <div class="campo"><label>Nome completo *</label><input type="text" id="ag-nome" value="${escapeHtml(d.nome)}" required /></div>
         <div class="campo"><label>CPF</label><input type="text" id="ag-cpf" placeholder="${escapeHtml(d.cpf_mascarado || "000.000.000-00")}" /></div>
         <div class="grid2">
-          <div class="campo"><label>Data de nascimento *</label><input type="date" id="ag-nascimento" value="${d.data_nascimento || ""}" required max="${hojeISO()}" /></div>
-          <div class="campo"><label>Telefone</label><input type="text" id="ag-telefone" value="${escapeHtml(d.telefone || "")}" /></div>
+          <div class="campo${faltando("data de nascimento")}"><label>Data de nascimento *</label><input type="date" id="ag-nascimento" value="${d.data_nascimento || ""}" required max="${hojeISO()}" /></div>
+          <div class="campo${faltando("telefone")}"><label>Telefone</label><input type="text" id="ag-telefone" value="${escapeHtml(d.telefone || "")}" /></div>
         </div>
         <div class="grid2">
-          <div class="campo"><label>CEP</label><input type="text" id="ag-cep" value="${escapeHtml(d.cep || "")}" placeholder="00000-000" /></div>
+          <div class="campo${faltando("CEP")}"><label>CEP</label><input type="text" id="ag-cep" value="${escapeHtml(d.cep || "")}" placeholder="00000-000" /></div>
           <div class="campo"><label>Número</label><input type="text" id="ag-numero" /></div>
         </div>
         <div id="ag-cep-status" class="muted" style="margin:-6px 0 10px;"></div>
@@ -1555,6 +1574,11 @@ function renderFormularioCompletarCadastro(d) {
 
 function attachFormularioCompletarCadastroHandlers() {
   ligarAutoPreenchimentoCep("ag");
+  const primeiroQueFalta = document.querySelector("#form-completar-cadastro .campo.faltando input");
+  if (primeiroQueFalta) {
+    primeiroQueFalta.scrollIntoView({ block: "center" });
+    primeiroQueFalta.focus({ preventScroll: true });
+  }
   const sair = (dizimistaAtualizado) => {
     const voltarPara = state.completandoVoltarPara;
     state.dizimistaCompletando = null;
