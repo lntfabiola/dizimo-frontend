@@ -3,10 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#1C1712" />
 <title>Dízimo — Paróquia São Miguel Arcanjo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
+
+  /* =========================================================
+     Visual do sistema — mesma paleta, superfícies planas, pouca decoração.
+     Mobile primeiro: navegação inferior, campos de 44px, formulários recolhíveis.
+     ========================================================= */
   :root {
     --cream: #F5F1E7;
     --cream-line: #E4DDC9;
@@ -18,180 +24,7 @@
     --brick-hover: #8F3226;
     --white: #FFFFFF;
     --muted: #7A7266;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: #EDEAE1;
-    color: var(--dark);
-  }
-  input, select, button { font-family: inherit; font-size: 14px; }
-  .serif { font-family: 'Playfair Display', serif; }
-  .mono { font-family: 'IBM Plex Mono', monospace; }
 
-  /* ---------- Login ---------- */
-  .login-wrap {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .login-card {
-    background: var(--cream);
-    border-radius: 16px;
-    padding: 32px 28px;
-    width: 100%;
-    max-width: 340px;
-    box-shadow: 0 12px 30px rgba(28,23,18,0.18);
-  }
-  .login-badge {
-    width: 44px; height: 44px; border-radius: 50%;
-    border: 1.5px solid var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif; color: var(--gold);
-    margin: 0 auto 12px;
-  }
-  .login-card h1 { text-align: center; font-size: 18px; margin: 0 0 4px; }
-  .login-card p.sub { text-align: center; color: var(--muted); font-size: 12px; margin: 0 0 20px; }
-
-  .campo { margin-bottom: 12px; }
-  .campo label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-  .campo input, .campo select, .campo textarea {
-    width: 100%; border: 1px solid var(--cream-line); border-radius: 8px;
-    padding: 9px 10px; background: var(--white); color: var(--dark);
-  }
-  .campo input:focus, .campo select:focus, .campo textarea:focus { outline: 2px solid var(--gold); }
-
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    border: none; border-radius: 24px; padding: 10px 18px;
-    font-weight: 700; font-size: 12.5px; letter-spacing: 0.3px; text-transform: uppercase;
-    cursor: pointer; background: var(--brick); color: var(--white);
-  }
-  .btn:hover { background: var(--brick-hover); }
-  .btn.full { width: 100%; }
-  .btn.outline {
-    background: transparent; color: var(--dark); border: 1.5px solid var(--dark);
-  }
-  .btn.small { padding: 6px 12px; font-size: 11px; }
-  .btn:disabled { opacity: 0.5; cursor: default; }
-  .btn.perigo { background: transparent; color: var(--brick); border: 1.5px solid var(--brick); }
-  .btn.perigo:hover { background: #F6DFDF; }
-
-  .erro {
-    background: #F6DFDF; color: #7A2A21; border: 1px solid #E3B5AC;
-    border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 12px;
-  }
-  .sucesso {
-    background: #DCEAE7; color: #1F5A50; border: 1px solid #B7D6CF;
-    border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 12px;
-  }
-
-  /* ---------- Shell / header ---------- */
-  header.topbar {
-    background: var(--dark); color: var(--white);
-    padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
-  }
-  header.topbar .brand { display: flex; align-items: center; gap: 10px; }
-  header.topbar .badge {
-    width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif; color: var(--gold); font-size: 12px;
-  }
-  header.topbar .titulo { font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; }
-  header.topbar .sub { font-size: 10px; color: var(--gold); }
-  header.topbar .sair { background: transparent; border: 1px solid var(--white); color: var(--white); border-radius: 16px; padding: 6px 12px; font-size: 11px; cursor: pointer; }
-
-  nav.tabs { display: flex; gap: 8px; padding: 14px 18px 0; flex-wrap: wrap; }
-  nav.tabs button {
-    border-radius: 20px; border: 1.5px solid var(--cream-line); background: var(--white);
-    color: var(--dark-soft); padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;
-  }
-  nav.tabs button.ativo { background: var(--dark); border-color: var(--dark); color: var(--white); }
-
-  main { max-width: 900px; margin: 0 auto; padding: 18px; }
-  .cartao {
-    background: var(--white); border: 1px solid var(--cream-line); border-radius: 10px;
-    padding: 16px; margin-bottom: 16px;
-  }
-  .cartao h2 { font-size: 14px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dark-soft); }
-
-  .linha-lista {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 9px 10px; border-bottom: 1px dashed var(--cream-line); font-size: 13px;
-  }
-  .linha-lista:last-child { border-bottom: none; }
-  .linha-lista .codigo { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--muted); margin-right: 6px; }
-
-  .pill-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
-  .pill-toggle button {
-    flex: 1; padding: 7px 0; border-radius: 20px; border: 1px solid var(--cream-line);
-    background: transparent; color: var(--muted); font-weight: 600; font-size: 12px; cursor: pointer;
-  }
-  .pill-toggle button.ativo { background: var(--brick); color: var(--white); border-color: var(--brick); }
-
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
-
-  .metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-  @media (max-width: 640px) { .metricas { grid-template-columns: 1fr; } }
-  .metrica { background: var(--white); border: 1px solid var(--cream-line); border-radius: 10px; padding: 14px 16px; }
-  .metrica .label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-  .metrica .valor { font-family: 'IBM Plex Mono', monospace; font-size: 21px; font-weight: 700; }
-
-  table.relatorio { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  table.relatorio th { text-align: left; border-bottom: 1.5px solid var(--dark); padding: 6px 4px; color: var(--muted); font-weight: 600; }
-  table.relatorio td { padding: 7px 4px; border-bottom: 1px dashed var(--cream-line); }
-  table.relatorio td.num { text-align: right; font-family: 'IBM Plex Mono', monospace; }
-
-  .tag-data {
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700; color: var(--brick);
-    background: var(--cream); padding: 4px 8px; border-radius: 6px;
-  }
-  .vazio { text-align: center; color: var(--muted); font-size: 12.5px; padding: 20px 0; }
-  .carimbo {
-    display: inline-block; border: 2px solid var(--brick); color: var(--brick);
-    font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 12px; letter-spacing: 1px;
-    padding: 4px 10px; border-radius: 3px; transform: rotate(-3deg); text-transform: uppercase;
-  }
-  .muted { color: var(--muted); font-size: 12px; }
-  .link-sel { color: var(--brick); font-size: 11px; font-weight: 600; cursor: pointer; background: none; border: none; }
-
-  .barra-linha { display: grid; grid-template-columns: 160px 1fr 90px; align-items: center; gap: 10px; padding: 6px 0; }
-  .barra-nome { font-size: 12px; color: var(--dark-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .barra-trilha { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--cream); }
-  .barra-segmento { height: 100%; }
-  .barra-valor { font-size: 12px; text-align: right; font-weight: 700; }
-  .legenda-cores { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
-  .legenda-cores span { display: flex; align-items: center; gap: 4px; }
-  .legenda-cores i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
-  @media (max-width: 640px) {
-    .barra-linha { grid-template-columns: 1fr; gap: 2px; }
-    .barra-valor { text-align: left; }
-  }
-
-  .serie-grafico { display: flex; align-items: flex-end; gap: 10px; height: 220px; overflow-x: auto; padding: 8px 4px 0; }
-  .serie-coluna { display: flex; flex-direction: column; align-items: center; min-width: 42px; height: 100%; justify-content: flex-end; }
-  .serie-barra { width: 26px; display: flex; flex-direction: column-reverse; border-radius: 3px 3px 0 0; overflow: hidden; background: var(--cream); }
-  .serie-segmento { width: 100%; }
-  .serie-label { font-size: 9.5px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
-  .serie-total { font-size: 9px; color: var(--dark-soft); font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; }
-
-  .comp-grafico { display: flex; align-items: flex-end; gap: 14px; height: 230px; overflow-x: auto; padding: 8px 4px 0; }
-  .comp-coluna { display: flex; flex-direction: column; align-items: center; min-width: 56px; height: 100%; justify-content: flex-end; }
-  .comp-barras { display: flex; align-items: flex-end; gap: 3px; }
-  .comp-barra { width: 16px; border-radius: 3px 3px 0 0; }
-  .comp-pct { font-size: 10px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
-  .comp-label { font-size: 9.5px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
-
-  /* =========================================================
-     REFRESH VISUAL — regras novas que sobrescrevem as de cima
-     (mesma especificidade, mais abaixo no arquivo = vencem).
-     Nenhum nome de classe foi trocado, então o JS não muda.
-     ========================================================= */
-  :root {
     --bg: #F1EEE6;
     --bg-2: #E9E5D9;
     --surface: #FFFFFF;
@@ -199,310 +32,402 @@
     --line-strong: #D8CFB8;
     --ink: #211B14;
     --ink-2: #4A4136;
-    --radius: 14px;
-    --radius-sm: 10px;
-    --radius-lg: 20px;
-    --shadow-sm: 0 1px 2px rgba(28,23,18,.06), 0 1px 1px rgba(28,23,18,.04);
-    --shadow: 0 2px 6px rgba(28,23,18,.05), 0 14px 34px -18px rgba(28,23,18,.28);
-    --shadow-lg: 0 30px 70px -24px rgba(28,23,18,.42);
     --ok: #2C6E63;
     --ok-bg: #E1EDE9;
-    --focus: 0 0 0 3px rgba(201,162,74,.38);
-    --grid-line: rgba(28,23,18,.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --focus: 0 0 0 3px rgba(201,162,74,.40);
+    --alt-nav: 60px;
   }
 
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    background:
-      radial-gradient(1200px 480px at 100% -8%, rgba(201,162,74,.10), transparent 60%),
-      radial-gradient(900px 420px at -10% 0%, rgba(168,64,47,.06), transparent 55%),
-      var(--bg);
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px; line-height: 1.5;
+    background: var(--bg); color: var(--ink);
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    letter-spacing: .1px;
   }
+  input, select, textarea, button { font-family: inherit; font-size: 16px; }
   ::selection { background: rgba(201,162,74,.28); }
-  * { -webkit-tap-highlight-color: transparent; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .muted { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  :focus-visible { outline: none; box-shadow: var(--focus); }
 
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
-  ::-webkit-scrollbar-track { background: transparent; }
-
-  main { max-width: 960px; padding: 22px 18px 40px; }
-
-  /* ---------- Cartões ---------- */
-  .cartao {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 18px;
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+  /* ---------- Login ---------- */
+  .login-wrap { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 32px 28px; width: 100%; max-width: 360px;
   }
-  .cartao:hover { box-shadow: var(--shadow); }
-  .cartao h2 {
-    font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--ink-2); margin: 0 0 14px; display: inline-flex; align-items: center; gap: 9px;
-  }
-  .cartao h2::before {
-    content: ""; width: 18px; height: 3px; border-radius: 2px;
-    background: linear-gradient(90deg, var(--gold), var(--gold-deep)); flex: none;
-  }
-
-  /* ---------- Cabeçalho ---------- */
-  header.topbar {
-    position: sticky; top: 0; z-index: 30;
-    background: linear-gradient(180deg, #221C15, #1A150F);
-    border-bottom: 1px solid rgba(201,162,74,.32);
-    padding: 12px 18px;
-    box-shadow: 0 8px 24px -16px rgba(0,0,0,.6);
-  }
-  header.topbar .titulo { font-size: 12px; font-weight: 600; letter-spacing: .14em; }
-  header.topbar .sub { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; opacity: .9; }
-  header.topbar .sair {
-    border-radius: 999px; padding: 7px 14px; font-weight: 600; letter-spacing: .04em;
-    border-color: rgba(255,255,255,.28); transition: background .16s ease, border-color .16s ease;
-  }
-  header.topbar .sair:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.55); }
-
-  /* ---------- Navegação em abas ---------- */
-  nav.tabs {
-    gap: 6px; padding: 16px 18px 2px; max-width: 960px; margin: 0 auto;
-  }
-  nav.tabs button {
-    border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
-    color: var(--ink-2); padding: 9px 16px; font-size: 12.5px; font-weight: 600;
-    box-shadow: var(--shadow-sm);
-    transition: transform .14s ease, background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease;
-  }
-  nav.tabs button:hover { transform: translateY(-1px); border-color: var(--line-strong); }
-  nav.tabs button.ativo {
-    background: linear-gradient(180deg, #2A2118, #1C1712); border-color: #1C1712; color: #fff;
-    box-shadow: 0 8px 18px -10px rgba(28,23,18,.6);
-  }
-  nav.tabs[style] button { box-shadow: none; }
+  .login-card h1 { text-align: center; font-size: 20px; line-height: 1.25; margin: 0 0 4px; }
+  .login-card p.sub { text-align: center; color: var(--muted); font-size: 13px; margin: 0 0 22px; }
 
   /* ---------- Campos ---------- */
-  .campo label { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-  .campo input, .campo select, .campo textarea {
-    border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--line-strong);
-    transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); margin-bottom: 6px; }
+  .campo input:not([type="checkbox"]):not([type="radio"]), .campo select, .campo textarea {
+    width: 100%; min-height: 44px; padding: 10px 12px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+    background: var(--white); color: var(--ink);
   }
-  .campo input:hover, .campo select:hover, .campo textarea:hover { border-color: var(--gold-deep); }
-  .campo input:focus, .campo select:focus, .campo textarea:focus {
-    outline: none; border-color: var(--gold); box-shadow: var(--focus);
-  }
+  .campo textarea { min-height: 80px; resize: vertical; }
+  .campo input:focus, .campo select:focus, .campo textarea:focus { outline: none; border-color: var(--gold-deep); box-shadow: var(--focus); }
+  .campo input:disabled, .campo select:disabled { background: var(--bg); color: var(--muted); }
+  .campo.faltando input, .campo.faltando select { border-color: var(--gold); background: rgba(201,162,74,.10); }
+  .campo.faltando label { color: var(--gold-deep); }
 
   /* ---------- Botões ---------- */
   .btn {
-    border-radius: 999px; padding: 11px 20px; font-size: 12px; letter-spacing: .06em;
-    box-shadow: 0 8px 18px -10px rgba(168,64,47,.55);
-    transition: transform .12s ease, background .16s ease, box-shadow .16s ease, filter .16s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 20px; border: 1px solid transparent; border-radius: 10px;
+    font-size: 15px; font-weight: 600; line-height: 1.2; cursor: pointer;
+    background: var(--brick); color: var(--white); text-align: center;
   }
-  .btn:hover { transform: translateY(-1px); filter: saturate(1.05); }
-  .btn:active { transform: translateY(0); }
-  .btn:focus-visible { outline: none; box-shadow: var(--focus), 0 8px 18px -10px rgba(168,64,47,.55); }
-  .btn.outline { box-shadow: none; border-width: 1.5px; }
-  .btn.outline:hover { background: rgba(28,23,18,.05); }
-  .btn.perigo { box-shadow: none; }
-  .btn.small { padding: 7px 13px; letter-spacing: .04em; }
+  .btn:hover { background: var(--brick-hover); }
+  .btn.full { width: 100%; }
+  .btn.outline { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+  .btn.outline:hover { background: var(--bg-2); }
+  .btn.small { min-height: 38px; padding: 6px 14px; font-size: 14px; }
+  .btn.perigo { background: var(--surface); color: var(--brick); border-color: var(--brick); }
+  .btn.perigo:hover { background: #F6DFDF; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn-mais {
+    display: block; width: 100%; margin-top: 10px; min-height: 44px;
+    border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface);
+    color: var(--ink-2); font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .btn-mais:hover { background: var(--bg-2); }
+  .link-sel {
+    display: inline-flex; align-items: center; min-height: 36px; padding: 4px 12px;
+    border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface);
+    color: var(--brick); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .link-sel:hover { background: var(--bg-2); }
+  /* "estornar" nas listas: discreto, pra não competir com o valor */
+  .link-sel[data-estornar-id], .link-sel[data-estornar-oferta-id] { border-color: transparent; background: none; min-height: 32px; padding: 2px 8px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+  .link-nome {
+    background: none; border: none; padding: 0; font: inherit; cursor: pointer;
+    color: var(--brick); font-weight: 600; text-align: left;
+  }
+  .link-nome:hover { color: var(--brick-hover); text-decoration: underline; }
 
-  /* ---------- Métricas ---------- */
-  .metricas { gap: 14px; }
-  .metrica {
-    position: relative; overflow: hidden; border-radius: var(--radius);
-    border: 1px solid var(--line); padding: 16px 18px; box-shadow: var(--shadow-sm);
-    transition: transform .18s ease, box-shadow .18s ease;
+  /* ---------- Mensagens ---------- */
+  .erro, .sucesso { border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; border: 1px solid; }
+  .erro { background: #F6DFDF; color: #7A2A21; border-color: #E3B5AC; }
+  .sucesso { background: var(--ok-bg); color: var(--ok); border-color: #BCD8D0; }
+
+  /* Aviso rápido (toast): confirma uma ação sem tomar a tela */
+  #avisos {
+    position: fixed; left: 0; right: 0; z-index: 300;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 0 12px; pointer-events: none;
   }
-  .metrica::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+  .aviso {
+    pointer-events: auto; display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 440px; padding: 12px 8px 12px 14px;
+    background: var(--dark); color: var(--white); border-radius: 10px;
+    font-size: 14px; line-height: 1.4; box-shadow: 0 6px 20px rgba(28,23,18,.28);
+    animation: aviso-entra .18s ease-out;
   }
-  .metrica:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-  .metrica .label { text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px; }
-  .metrica .valor { font-size: 24px; letter-spacing: -.01em; }
+  .aviso.saindo { opacity: 0; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+  .aviso-icone {
+    flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--ok);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+  }
+  .aviso.erro-aviso .aviso-icone { background: var(--brick); }
+  .aviso-icone svg { width: 14px; height: 14px; }
+  .aviso-texto { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .aviso-fechar {
+    flex: none; width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent;
+    color: rgba(255,255,255,.7); font-size: 20px; line-height: 1; cursor: pointer;
+  }
+  .aviso-fechar:hover { background: rgba(255,255,255,.12); color: var(--white); }
+  @keyframes aviso-entra { from { opacity: 0; transform: translateY(8px); } }
+
+  /* Caixa de confirmação (no lugar do confirm/prompt do navegador) */
+  dialog.dialogo {
+    border: none; padding: 0; width: min(440px, calc(100% - 24px)); max-width: none;
+    background: var(--surface); color: var(--ink); border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(28,23,18,.35);
+  }
+  dialog.dialogo::backdrop { background: rgba(28,23,18,.5); }
+  .dialogo-corpo { padding: 22px 22px 8px; }
+  .dialogo-corpo h3 { margin: 0 0 8px; font-size: 19px; line-height: 1.25; }
+  .dialogo-texto { margin: 0 0 14px; color: var(--ink-2); font-size: 14.5px; white-space: pre-line; overflow-wrap: anywhere; }
+  .dialogo-erro { color: var(--brick-hover); font-size: 13px; margin-top: 6px; min-height: 18px; }
+  .dialogo-acoes { display: flex; justify-content: flex-end; gap: 10px; padding: 8px 22px 22px; }
+
+  /* ---------- Cabeçalho ---------- */
+  header.topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 60px; padding: 8px 16px; background: var(--dark); color: var(--white);
+  }
+  header.topbar .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  header.topbar .brand img { flex: none; }
+  header.topbar .brand > div { min-width: 0; }
+  header.topbar .titulo {
+    font-family: 'Playfair Display', serif; font-weight: 600; font-size: 17px; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  header.topbar .sub { font-size: 12.5px; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conta { position: relative; flex: none; }
+  .conta-btn {
+    display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+    border-radius: 50%; border: 1px solid rgba(255,255,255,.35); background: transparent;
+    color: var(--white); font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .conta-btn:hover { background: rgba(255,255,255,.12); }
+  .conta-menu {
+    position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; padding: 6px;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: 0 10px 30px rgba(28,23,18,.22);
+  }
+  .conta-menu[hidden] { display: none; }
+  .conta-quem { padding: 10px 12px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-weight: 600; font-size: 14px; }
+  .conta-quem small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; }
+  .conta-menu button {
+    display: block; width: 100%; min-height: 44px; padding: 0 12px; text-align: left;
+    border: none; border-radius: 8px; background: none; color: var(--ink); font-size: 15px; cursor: pointer;
+  }
+  .conta-menu button:hover { background: var(--bg); }
+
+  /* ---------- Navegação ---------- */
+  .nav-principal {
+    display: flex; gap: 2px; background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 0 max(12px, calc((100% - 960px) / 2 + 18px));
+  }
+  .nav-principal button {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 50px; padding: 0 14px;
+    background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -1px;
+    color: var(--ink-2); font-size: 14.5px; font-weight: 600; cursor: pointer;
+  }
+  .nav-principal button:hover { color: var(--ink); }
+  .nav-principal button.ativo { color: var(--brick); border-bottom-color: var(--brick); }
+  .nav-principal svg { width: 20px; height: 20px; flex: none; }
+
+  nav.tabs {
+    display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+    padding: 14px max(16px, calc((100% - 960px) / 2 + 18px)) 0;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  nav.tabs button {
+    flex: none; min-height: 40px; padding: 0 16px; border: 1px solid var(--line-strong);
+    border-radius: 8px; background: var(--surface); color: var(--ink-2);
+    font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  }
+  nav.tabs button:hover { background: var(--bg-2); }
+  nav.tabs button.ativo { background: var(--dark); border-color: var(--dark); color: var(--white); }
+
+  main { max-width: 960px; margin: 0 auto; padding: 20px 18px 32px; }
+
+  /* ---------- Cartões ---------- */
+  .cartao {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 14px;
+  }
+  .cartao h2 { font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--ink); margin: 0 0 12px; }
+  .cartao h3 { font-size: 14px; font-weight: 600; }
+  .cartao > .muted:first-of-type, .cartao h2 + .muted { margin-top: -6px; }
+
+  /* cartão que abre e fecha (formulários e relatórios secundários) */
+  details.recolhivel { padding: 0; }
+  details.recolhivel > summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 56px; padding: 12px 18px; cursor: pointer; list-style: none;
+    font-size: 16px; font-weight: 600;
+  }
+  details.recolhivel > summary::-webkit-details-marker { display: none; }
+  details.recolhivel > summary::after {
+    content: ""; flex: none; width: 9px; height: 9px; margin: 0 4px 3px 0;
+    border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg); transition: transform .15s;
+  }
+  details.recolhivel[open] > summary::after { transform: rotate(-135deg); margin-bottom: -3px; }
+  details.recolhivel[open] > summary { border-bottom: 1px solid var(--line); }
+  .recolhivel-corpo { padding: 16px 18px 18px; }
 
   /* ---------- Listas ---------- */
   .linha-lista {
-    border-bottom: 1px solid var(--line); padding: 11px 10px; border-radius: 8px;
-    transition: background .14s ease;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 12px 2px; border-bottom: 1px solid var(--line); font-size: 14.5px;
   }
-  .linha-lista:hover { background: rgba(201,162,74,.07); }
-  .linha-lista .codigo {
-    display: inline-block; background: var(--bg-2); color: var(--ink-2);
-    padding: 2px 6px; border-radius: 5px; margin-right: 8px; letter-spacing: .02em;
+  .linha-lista:last-child { border-bottom: none; }
+  .linha-lista .codigo, .codigo {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-2);
+    background: var(--bg-2); padding: 1px 6px; border-radius: 5px; margin-right: 2px;
   }
+  .lista-contagem { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .vazio { text-align: center; color: var(--muted); font-size: 14px; padding: 24px 12px; }
 
-  /* ---------- Toggle de pílulas ---------- */
-  .pill-toggle {
-    background: var(--bg-2); padding: 4px; border-radius: 999px; gap: 4px;
-    border: 1px solid var(--line);
-  }
+  .pill-toggle { display: flex; gap: 4px; padding: 4px; margin-bottom: 14px; background: var(--bg-2); border-radius: 10px; }
   .pill-toggle button {
-    border: none; border-radius: 999px; padding: 8px 0; transition: background .16s ease, color .16s ease, box-shadow .16s ease;
+    flex: 1; min-height: 40px; border: none; border-radius: 8px; background: transparent;
+    color: var(--ink-2); font-weight: 600; font-size: 14px; cursor: pointer;
   }
-  .pill-toggle button.ativo { box-shadow: 0 6px 14px -8px rgba(168,64,47,.7); }
+  .pill-toggle button.ativo { background: var(--brick); color: var(--white); }
 
-  /* ---------- Tabelas ---------- */
-  table.relatorio th {
-    position: sticky; top: 0; background: var(--surface); z-index: 1;
-    text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px;
-    border-bottom: 2px solid var(--ink);
-  }
-  table.relatorio tbody tr { transition: background .12s ease; }
-  table.relatorio tbody tr:nth-child(even) td { background: rgba(28,23,18,.025); }
-  table.relatorio tbody tr:hover td { background: rgba(201,162,74,.10); }
-  table.relatorio td { border-bottom: 1px solid var(--line); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid2 > * { min-width: 0; }
+  .filtros { display: flex; gap: 12px; margin-bottom: 16px; max-width: 460px; }
+  .filtros .campo { flex: 1; min-width: 0; margin: 0; }
+
+  /* ---------- Números e tabelas ---------- */
+  .metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  .metrica { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .metrica .label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .metrica .valor { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+
+  table.relatorio { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.relatorio th { text-align: left; padding: 8px 8px; color: var(--muted); font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line-strong); }
+  table.relatorio td { padding: 11px 8px; border-bottom: 1px solid var(--line); }
+  table.relatorio tbody tr:last-child td { border-bottom: none; }
+  table.relatorio td.num, table.relatorio th.num { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+
+  .tag-data { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--brick); background: var(--cream); padding: 3px 8px; border-radius: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--bg-2); color: var(--ink-2); }
+  .chip.ok { background: var(--ok-bg); color: var(--ok); }
+  .chip.alerta { background: #F7E5E2; color: var(--brick-hover); }
 
   /* ---------- Gráficos ---------- */
-  .serie-grafico, .comp-grafico {
-    border-radius: var(--radius-sm); padding: 14px 10px 6px;
-    background:
-      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 25%,
-      linear-gradient(180deg, rgba(28,23,18,.02), transparent 40%);
-    background-color: #FCFBF7; border: 1px solid var(--line);
-  }
-  .serie-barra { border-radius: 6px 6px 3px 3px; box-shadow: inset 0 -2px 6px rgba(0,0,0,.06); }
-  .serie-segmento, .comp-barra, .barra-segmento { transition: height .5s cubic-bezier(.2,.7,.2,1), width .5s cubic-bezier(.2,.7,.2,1); }
-  .serie-coluna:hover .serie-barra, .comp-coluna:hover .comp-barra { filter: brightness(1.08); }
-  .comp-barra { border-radius: 5px 5px 2px 2px; }
-  .serie-label, .comp-label { font-weight: 600; }
-  .serie-total { font-weight: 700; color: var(--ink-2); }
-  .legenda-cores { gap: 14px; }
-  .legenda-cores i { width: 10px; height: 10px; border-radius: 3px; }
+  .barra-linha { display: grid; grid-template-columns: 160px 1fr 100px; align-items: center; gap: 10px; padding: 7px 0; }
+  .barra-nome { font-size: 13.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .barra-trilha { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--bg-2); }
+  .barra-segmento { height: 100%; }
+  .barra-valor { font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-align: right; font-weight: 600; }
+  .legenda-cores { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+  .legenda-cores span { display: flex; align-items: center; gap: 6px; }
+  .legenda-cores i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
-  .barra-trilha { height: 18px; border-radius: 999px; background: var(--bg-2); }
-  .barra-segmento:first-child { border-radius: 999px 0 0 999px; }
-  .barra-valor { font-family: 'IBM Plex Mono', monospace; }
+  .serie-grafico, .comp-grafico { display: flex; align-items: flex-end; overflow-x: auto; padding: 8px 4px 0; }
+  .serie-grafico { gap: 10px; height: 220px; }
+  .serie-coluna { display: flex; flex-direction: column; align-items: center; min-width: 44px; height: 100%; justify-content: flex-end; }
+  .serie-barra { width: 26px; display: flex; flex-direction: column-reverse; border-radius: 4px 4px 0 0; overflow: hidden; background: var(--bg-2); }
+  .serie-segmento { width: 100%; }
+  .serie-label, .comp-label { font-size: 11px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
+  .serie-total { font-size: 10.5px; color: var(--ink-2); font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; }
+  .comp-grafico { gap: 14px; height: 230px; }
+  .comp-coluna { display: flex; flex-direction: column; align-items: center; min-width: 56px; height: 100%; justify-content: flex-end; }
+  .comp-barras { display: flex; align-items: flex-end; gap: 3px; }
+  .comp-barra { width: 16px; border-radius: 4px 4px 0 0; }
+  .comp-pct { font-size: 11px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; }
 
-  /* ---------- Diversos ---------- */
-  .tag-data { background: #FBEEDD; border: 1px solid #EAD4B0; color: var(--gold-deep); }
-  .vazio {
-    border: 1px dashed var(--line-strong); border-radius: var(--radius-sm);
-    background: #FCFBF7; padding: 22px 12px;
-  }
-  .muted { line-height: 1.5; }
-  .erro, .sucesso { border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12.5px; }
-  .sucesso { background: var(--ok-bg); color: var(--ok); border-color: #BCD8D0; }
-
-  .link-sel {
-    border-radius: 999px; padding: 5px 12px; border: 1px solid var(--line-strong);
-    background: var(--surface); transition: background .14s ease, border-color .14s ease, color .14s ease;
-    white-space: nowrap;
-  }
-  .link-sel:hover { background: var(--brick); border-color: var(--brick); color: #fff; }
-
-  /* nome clicável que leva ao perfil da pessoa */
-  .link-nome {
-    background: none; border: none; padding: 0; font: inherit; cursor: pointer;
-    color: var(--brick); font-weight: 600;
-    text-decoration: underline; text-decoration-style: dotted;
-    text-underline-offset: 3px; text-decoration-color: rgba(168,64,47,.45);
-    transition: color .14s ease, text-decoration-color .14s ease;
-  }
-  .link-nome:hover { color: var(--brick-hover); text-decoration-style: solid; text-decoration-color: currentColor; }
-  .link-nome:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 4px; }
-
-  /* ---------- Modal de perfil do dizimista ---------- */
+  /* ---------- Janela de perfil / troca de senha ---------- */
   .perfil-backdrop {
     position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center;
-    padding: 40px 16px; background: rgba(20,16,12,.5); backdrop-filter: blur(3px);
-    animation: perfil-fade .16s ease;
+    padding: 40px 16px; background: rgba(28,23,18,.5); animation: aviso-entra .15s ease;
   }
   .perfil-modal {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
-    width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
-    box-shadow: var(--shadow-lg); animation: perfil-pop .18s cubic-bezier(.2,.8,.2,1);
+    background: var(--surface); border-radius: 16px; width: 100%; max-width: 560px;
+    max-height: calc(100dvh - 80px); overflow-y: auto; box-shadow: 0 20px 50px rgba(28,23,18,.35);
   }
   .perfil-head {
-    position: sticky; top: 0; background: linear-gradient(180deg, #ffffff, #FBF8F1);
-    border-bottom: 1px solid var(--line); padding: 18px 20px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
+    position: sticky; top: 0; z-index: 1; background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 16px 20px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
   }
-  .perfil-head h3 { margin: 0; font-size: 17px; }
+  .perfil-head h3 { margin: 0; font-size: 18px; line-height: 1.25; }
   .perfil-close {
-    flex: none; width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line-strong);
-    background: var(--surface); cursor: pointer; font-size: 16px; line-height: 1; color: var(--ink-2);
-    transition: background .14s ease, transform .14s ease;
+    flex: none; width: 40px; height: 40px; margin: -6px -8px 0 0; border-radius: 50%; border: none;
+    background: none; cursor: pointer; font-size: 18px; color: var(--ink-2);
   }
-  .perfil-close:hover { background: var(--bg-2); transform: rotate(90deg); }
-  .perfil-body { padding: 18px 20px 22px; }
-  .perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-bottom: 6px; }
-  .perfil-campo .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-  .perfil-campo .v { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .perfil-close:hover { background: var(--bg-2); }
+  .perfil-body { padding: 18px 20px 24px; }
+  .perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-bottom: 8px; }
+  .perfil-campo .k { font-size: 12.5px; color: var(--muted); }
+  .perfil-campo .v { font-size: 14.5px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
   .perfil-hist { margin-top: 8px; }
-  .perfil-hist .linha-lista:hover { background: transparent; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
-    font-size: 11px; font-weight: 600; background: var(--bg-2); color: var(--ink-2); border: 1px solid var(--line);
-  }
-  .chip.ok { background: var(--ok-bg); color: var(--ok); border-color: #BCD8D0; }
-  .chip.alerta { background: #F7E5E2; color: var(--brick-hover); border-color: #E7C3BB; }
 
-  @keyframes perfil-fade { from { opacity: 0; } }
-  @keyframes perfil-pop { from { opacity: 0; transform: translateY(10px) scale(.98); } }
-
-  /* ---------- Carregando (shimmer) ---------- */
   .skeleton {
-    border-radius: 8px;
-    background: linear-gradient(90deg, var(--bg-2) 25%, #F3EFE4 37%, var(--bg-2) 63%);
+    border-radius: 8px; background: linear-gradient(90deg, var(--bg-2) 25%, #F3EFE4 37%, var(--bg-2) 63%);
     background-size: 400% 100%; animation: sk 1.3s ease infinite;
   }
   @keyframes sk { from { background-position: 100% 0; } to { background-position: 0 0; } }
 
-  .btn-mais {
-    display: block; width: 100%; margin-top: 10px; padding: 9px 0;
-    border: 1px dashed var(--line-strong); border-radius: var(--radius-sm);
-    background: #FCFBF7; color: var(--ink-2); font-weight: 600; font-size: 12px; cursor: pointer;
-    transition: background .14s ease, border-color .14s ease;
-  }
-  .btn-mais:hover { background: var(--bg-2); border-color: var(--gold-deep); }
-  .lista-contagem { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: .02em; }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
-  }
-  @media (max-width: 560px) {
-    .perfil-grid { grid-template-columns: 1fr; }
-    main { padding: 16px 12px 32px; }
-  }
-
-  /* campo que falta preencher no cadastro */
-  .campo.faltando input { border-color: var(--gold); background: rgba(201,162,74,.12); }
-  .campo.faltando label { color: var(--gold-deep); }
-
   /* ---------- Aniversariantes ---------- */
-  .cartao.an-cartao { padding: 14px 14px 8px; }
-  .an-cabeca { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .cartao.an-cartao { padding: 14px 16px 6px; }
+  .an-cabeca { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
   .an-cabeca h2 { margin: 0; }
-  .an-resumo { font-size: 12px; color: var(--muted); margin: 2px 2px 8px; }
-  .an-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 8px 6px; border-bottom: 1px solid var(--cream-line);
-  }
+  .an-resumo { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+  .an-item { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
   .an-item:last-child { border-bottom: none; }
-  .an-item:nth-child(even) { background: rgba(201,162,74,.06); }
   .an-badge {
-    flex: none; width: 46px; text-align: center; line-height: 1.05;
-    background: #FBEEDD; border: 1px solid #EAD4B0; border-radius: 10px; padding: 5px 0 4px;
+    flex: none; width: 48px; text-align: center; line-height: 1.05;
+    background: var(--cream); border: 1px solid var(--cream-line); border-radius: 10px; padding: 6px 0 5px;
   }
-  .an-badge .dia { display: block; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--brick); }
-  .an-badge .mes { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--gold-deep); }
+  .an-badge .dia { display: block; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 20px; color: var(--brick); }
+  .an-badge .mes { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--gold-deep); }
   .an-info { flex: 1; min-width: 0; }
-  .an-nome { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; }
-  .an-meta { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
-  .an-meta .codigo { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; margin-right: 6px; }
-  .an-quando { flex: none; font-size: 11px; font-weight: 700; color: var(--muted); text-align: right; }
-  .an-quando small { display: block; font-weight: 500; font-size: 10.5px; }
+  .an-nome { font-weight: 600; font-size: 14.5px; overflow-wrap: anywhere; }
+  .an-meta { font-size: 13px; color: var(--muted); margin-top: 1px; }
+  .an-meta .codigo { margin-right: 6px; }
+  .an-quando { flex: none; font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; }
+  .an-quando small { display: block; font-weight: 400; font-size: 12px; }
   .an-item.an-hoje { background: rgba(168,64,47,.07); border-radius: 10px; border-bottom-color: transparent; }
   .an-item.an-hoje .an-badge { background: var(--brick); border-color: var(--brick); }
   .an-item.an-hoje .an-badge .dia, .an-item.an-hoje .an-badge .mes { color: #fff; }
-  .an-item.an-hoje .an-quando { color: var(--brick); font-size: 12px; }
-  .an-item.an-passou { opacity: .5; }
-  @media (max-width: 560px) {
-    .cartao.an-cartao { padding: 12px 10px 6px; }
-    .an-badge { width: 42px; }
-    .an-nome { font-size: 13px; }
+  .an-item.an-hoje .an-quando { color: var(--brick); }
+  .an-item.an-passou { opacity: .55; }
+
+  /* ---------- Celular ---------- */
+  @media (max-width: 720px) {
+    body { font-size: 15px; }
+    main { padding: 16px 14px 24px; }
+    .cartao { padding: 16px; }
+    .recolhivel-corpo { padding: 14px 16px 16px; }
+    details.recolhivel > summary { padding: 12px 16px; }
+
+    /* navegação principal vira barra inferior, ao alcance do polegar */
+    .nav-principal {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; gap: 0;
+      border-bottom: none; border-top: 1px solid var(--line-strong);
+      padding: 0 0 env(safe-area-inset-bottom);
+    }
+    .nav-principal button {
+      flex: 1; min-width: 0; flex-direction: column; justify-content: center; gap: 3px;
+      min-height: var(--alt-nav); padding: 6px 2px; border-bottom: none; margin: 0;
+      font-size: 12px; font-weight: 500;
+    }
+    .nav-principal button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-principal button.ativo { color: var(--brick); font-weight: 600; box-shadow: inset 0 3px 0 var(--brick); }
+    .nav-principal svg { width: 24px; height: 24px; }
+    #avisos { bottom: calc(var(--alt-nav) + 14px + env(safe-area-inset-bottom)); }
+    #app > footer { padding-bottom: calc(var(--alt-nav) + 24px + env(safe-area-inset-bottom)) !important; }
+
+    header.topbar { padding: 8px 14px; }
+    header.topbar .titulo { font-size: 16px; }
+
+    /* métricas: o total em destaque, os demais lado a lado */
+    .metricas { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metricas > .metrica:nth-child(3):last-child { grid-column: 1 / -1; order: -1; }
+    .metrica { padding: 12px 14px; }
+    .metrica .valor { font-size: 19px; }
+
+    .grid2:has(> .btn), .grid2:has(.mono), .grid2:has(select) { grid-template-columns: 1fr; }
+    .barra-linha { grid-template-columns: 1fr auto; gap: 4px 10px; }
+    .barra-nome { grid-column: 1 / -1; }
+    .barra-trilha { grid-column: 1; }
+
+    /* tabelas largas rolam de lado em vez de espremer as colunas */
+    table.relatorio { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.relatorio th, table.relatorio td { white-space: nowrap; }
+
+    .perfil-backdrop { padding: 0; align-items: flex-end; }
+    .perfil-modal { max-width: none; max-height: 92dvh; border-radius: 16px 16px 0 0; }
+    .perfil-grid { grid-template-columns: 1fr; }
+    .login-card { padding: 28px 22px; }
+
+    dialog.dialogo { width: 100%; margin: auto 0 0; border-radius: 16px 16px 0 0; }
+    .dialogo-acoes { flex-direction: column-reverse; }
+    .dialogo-acoes .btn { width: 100%; }
+    .cartao.an-cartao { padding: 12px 12px 4px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
   }
 </style>
 </head>
@@ -636,7 +561,7 @@ async function lancarDizimoConfirmandoSituacao(corpo) {
   } catch (err) {
     const d = err.detalhe;
     if (err.status === 409 && d && typeof d === "object" && d.codigo === "dizimista_nao_ativo") {
-      if (!confirm(`${d.mensagem}\n\nLançar o dízimo mesmo assim?`)) {
+      if (!(await confirmarAcao(`${d.mensagem}\n\nLançar o dízimo mesmo assim?`, { titulo: "Dizimista fora dos ativos", confirmar: "Lançar mesmo assim" }))) {
         throw new Error(`Lançamento cancelado — o dizimista está marcado como "${d.situacao}".`);
       }
       return api("/contribuicoes", { method: "POST", body: { ...corpo, confirmar_situacao: true } });
@@ -663,11 +588,12 @@ async function enviarDizimistaConfirmandoDuplicado(metodo, caminho, corpo) {
           ` (${x.motivo})`
       )
       .join("\n");
-    if (!confirm(`${d.mensagem}
-
-${lista}
-
-É OUTRA pessoa mesmo? OK = cadastrar assim mesmo · Cancelar = não salvar`)) {
+    const eOutraPessoa = await confirmarAcao(`${d.mensagem}\n\n${lista}\n\nÉ outra pessoa mesmo?`, {
+      titulo: "Possível cadastro repetido",
+      confirmar: "É outra pessoa, salvar",
+      cancelar: "Não salvar",
+    });
+    if (!eOutraPessoa) {
       throw new Error("Não foi salvo — confira o cadastro que já existe.");
     }
     return api(caminho, { method: metodo, body: { ...corpo, confirmar_duplicado: true } });
@@ -787,7 +713,7 @@ async function abrirPerfilDizimista(id) {
             <span>${fmtDataBR(c.data_pagamento)}</span>
             <span class="mono" style="font-weight:700;">${fmtMoeda(c.valor)}</span>
           </div>
-          <div class="muted" style="font-size:11px;">
+          <div class="muted" style="font-size:12.5px;">
             ${escapeHtml({ dinheiro: "Dinheiro", pix: "Pix", cartao: "Cartão", outro: "Outro" }[c.forma_pagamento] || c.forma_pagamento)}${
           c.meses_referencia ? " · " + escapeHtml(c.meses_referencia) : ""
         }</div>
@@ -873,6 +799,245 @@ async function init() {
 /* =========================================================
    RENDER RAIZ
    ========================================================= */
+/* =========================================================
+   AVISOS, CAIXA DE CONFIRMAÇÃO E NAVEGAÇÃO
+   ========================================================= */
+const SVG_NAV = (d) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICONES_NAV = {
+  lancar: SVG_NAV('<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>'),
+  relatorios: SVG_NAV('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  cadastros: SVG_NAV('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.1-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M18.5 14.9c1.7.7 2.8 2.3 3.1 5.1"/>'),
+  aniversarios: SVG_NAV('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  atividades: SVG_NAV('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+};
+
+/* Aviso rápido que some sozinho (confirma uma ação sem tomar a tela). */
+function mostrarAviso(texto, tipo = "ok") {
+  let host = document.getElementById("avisos");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "avisos";
+    host.setAttribute("aria-live", "polite");
+    document.body.appendChild(host);
+  }
+  const erro = tipo === "erro";
+  const item = document.createElement("div");
+  item.className = "aviso" + (erro ? " erro-aviso" : "");
+  if (erro) item.setAttribute("role", "alert");
+  item.innerHTML = `<span class="aviso-icone">${
+    erro ? "!" : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+  }</span><span class="aviso-texto"></span><button type="button" class="aviso-fechar" aria-label="Fechar aviso">×</button>`;
+  item.querySelector(".aviso-texto").textContent = texto;
+  const fechar = () => {
+    item.classList.add("saindo");
+    setTimeout(() => item.remove(), 200);
+  };
+  item.querySelector(".aviso-fechar").addEventListener("click", fechar);
+  host.appendChild(item);
+  while (host.children.length > 3) host.firstElementChild.remove();
+  setTimeout(fechar, erro ? 7000 : 4000);
+}
+
+/* Caixa de confirmação própria (no lugar de confirm/prompt). Devolve true/false; com `motivo`,
+   devolve o texto digitado, ou null se a pessoa cancelar. */
+function abrirDialogo({ titulo, texto = "", confirmar = "Confirmar", cancelar = "Cancelar", motivo = null }) {
+  return new Promise((resolve) => {
+    const dlg = document.createElement("dialog");
+    dlg.className = "dialogo";
+    dlg.setAttribute("aria-labelledby", "dialogo-titulo");
+    dlg.innerHTML = `
+      <form class="dialogo-form" novalidate>
+        <div class="dialogo-corpo">
+          <h3 class="serif" id="dialogo-titulo"></h3>
+          <p class="dialogo-texto"></p>
+          ${
+            motivo
+              ? `<div class="campo" style="margin-bottom:0;"><label for="dialogo-motivo"></label><textarea id="dialogo-motivo" rows="2" maxlength="300"></textarea><div class="dialogo-erro" role="alert"></div></div>`
+              : ""
+          }
+        </div>
+        <div class="dialogo-acoes">
+          <button type="button" class="btn outline"></button>
+          <button type="submit" class="btn"></button>
+        </div>
+      </form>`;
+    dlg.querySelector("h3").textContent = titulo;
+    const par = dlg.querySelector(".dialogo-texto");
+    if (texto) par.textContent = texto;
+    else par.remove();
+    const [btnCancelar, btnOk] = dlg.querySelectorAll(".dialogo-acoes button");
+    btnCancelar.textContent = cancelar;
+    btnOk.textContent = confirmar;
+    let campo = null;
+    if (motivo) {
+      campo = dlg.querySelector("textarea");
+      dlg.querySelector("label").textContent = motivo.rotulo;
+      campo.placeholder = motivo.placeholder || "";
+    }
+    btnCancelar.addEventListener("click", () => dlg.close("cancelar"));
+    dlg.addEventListener("click", (e) => {
+      if (e.target === dlg) dlg.close("cancelar"); // clique fora da caixa
+    });
+    dlg.querySelector("form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (campo && campo.value.trim().length < (motivo.min || 1)) {
+        dlg.querySelector(".dialogo-erro").textContent = `Escreva o motivo (mínimo de ${motivo.min || 1} letras).`;
+        campo.focus();
+        return;
+      }
+      dlg.close("ok");
+    });
+    dlg.addEventListener("close", () => {
+      const ok = dlg.returnValue === "ok";
+      const valor = campo ? campo.value.trim() : "";
+      dlg.remove();
+      resolve(motivo ? (ok ? valor : null) : ok);
+    });
+    document.body.appendChild(dlg);
+    dlg.showModal();
+    (campo || btnCancelar).focus(); // o foco começa na opção que não faz nada
+  });
+}
+
+function confirmarAcao(texto, opcoes = {}) {
+  return abrirDialogo({ titulo: "Confirmar", texto, ...opcoes });
+}
+
+function pedirMotivoDeEstorno(titulo, resumo) {
+  return abrirDialogo({
+    titulo,
+    texto: `${resumo}\n\nEle sai dos totais e relatórios, mas fica registrado no histórico de estornos.`,
+    confirmar: "Estornar",
+    motivo: { rotulo: "Motivo do estorno *", placeholder: "Ex.: valor digitado errado", min: 3 },
+  });
+}
+
+function iniciaisDoNome(nome) {
+  const partes = String(nome || "").split(/\s+/).filter((x) => /^\p{L}/u.test(x));
+  if (!partes.length) return "?";
+  return (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase();
+}
+
+function fecharMenuConta() {
+  const menu = document.getElementById("conta-menu");
+  const botao = document.getElementById("btn-conta");
+  if (menu) menu.hidden = true;
+  if (botao) botao.setAttribute("aria-expanded", "false");
+}
+
+function attachMenuConta() {
+  const botao = document.getElementById("btn-conta");
+  const menu = document.getElementById("conta-menu");
+  botao.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const abrir = menu.hidden;
+    menu.hidden = !abrir;
+    botao.setAttribute("aria-expanded", String(abrir));
+  });
+  menu.addEventListener("click", fecharMenuConta);
+  if (!window._menuContaDelegado) {
+    window._menuContaDelegado = true;
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".conta")) fecharMenuConta();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") fecharMenuConta();
+    });
+  }
+}
+
+/* Navegação: poucos grupos na barra principal (embaixo no celular); as telas de cada grupo
+   aparecem como abas logo abaixo do cabeçalho. */
+const ultimaAbaDoGrupo = {};
+
+function gruposDeNavegacao() {
+  const perfil = state.usuario.perfil;
+  if (perfil === "agente") {
+    return {
+      chave: "abaTesoureiro",
+      grupos: [
+        { icone: "lancar", rotulo: "Dízimo", abas: [["dizimo", "Dízimo"]] },
+        { icone: "aniversarios", rotulo: "Aniversários", abas: [["aniversarios", "Aniversários"]] },
+      ],
+    };
+  }
+  if (perfil === "tesoureiro") {
+    return {
+      chave: "abaTesoureiro",
+      grupos: [
+        { icone: "lancar", rotulo: "Lançar", abas: [["dizimo", "Dízimo"], ["ofertorio", "Ofertório"]] },
+        {
+          icone: "relatorios",
+          rotulo: "Relatórios",
+          // relatórios da própria comunidade (o backend já limita os dados à comunidade do tesoureiro)
+          abas: [["consolidado", "Consolidado"], ["balanco", "Balanço"], ["estatisticas", "Estatísticas"], ["lancamentos", "Lançamentos"], ["etiquetas", "Etiquetas"]],
+        },
+        { icone: "aniversarios", rotulo: "Aniversários", abas: [["aniversarios", "Aniversários"]] },
+      ],
+    };
+  }
+  const grupos = [
+    {
+      icone: "relatorios",
+      rotulo: "Relatórios",
+      abas: [["consolidado", "Consolidado"], ["balanco", "Balanço"], ["estatisticas", "Estatísticas"], ["lancamentos", "Lançamentos"]],
+    },
+  ];
+  // o pároco só consulta: sem a tela de cadastros (editar, excluir, usuários, importação)
+  if (perfil !== "paroco") grupos.push({ icone: "cadastros", rotulo: "Cadastros", abas: [["cadastros", "Cadastros"]] });
+  grupos.push({ icone: "aniversarios", rotulo: "Aniversários", abas: [["aniversarios", "Aniversários"]] });
+  grupos.push({ icone: "atividades", rotulo: "Atividades", abas: [["atividades", "Atividades"]] });
+  return { chave: "abaSecretaria", grupos };
+}
+
+function renderNavegacao() {
+  const { chave, grupos } = gruposDeNavegacao();
+  const ativa = state[chave];
+  const grupoAtivo = grupos.find((g) => g.abas.some(([id]) => id === ativa)) || grupos[0];
+  const principal = grupos
+    .map((g) => {
+      const ehAtivo = g === grupoAtivo;
+      const lembrada = ultimaAbaDoGrupo[g.rotulo];
+      const destino = g.abas.some(([id]) => id === lembrada) ? lembrada : g.abas[0][0];
+      return `<button type="button" data-aba="${ehAtivo ? ativa : destino}" class="${ehAtivo ? "ativo" : ""}"${ehAtivo ? ' aria-current="page"' : ""}>${ICONES_NAV[g.icone]}<span>${g.rotulo}</span></button>`;
+    })
+    .join("");
+  const sub =
+    grupoAtivo.abas.length > 1
+      ? `<nav class="tabs" aria-label="${grupoAtivo.rotulo}">${grupoAtivo.abas
+          .map(([id, rotulo]) => `<button type="button" data-aba="${id}" class="${id === ativa ? "ativo" : ""}">${rotulo}</button>`)
+          .join("")}</nav>`
+      : "";
+  return `<nav class="nav-principal" aria-label="Seções do sistema">${principal}</nav>${sub}`;
+}
+
+function attachNavegacao() {
+  const host = document.getElementById("nav-host");
+  host.querySelectorAll("button[data-aba]").forEach((btn) => {
+    btn.addEventListener("click", () => irParaAba(btn.dataset.aba));
+  });
+  const ativa = host.querySelector("nav.tabs .ativo");
+  if (ativa) ativa.parentElement.scrollLeft = Math.max(0, ativa.offsetLeft - 16);
+}
+
+function irParaAba(id) {
+  const { chave, grupos } = gruposDeNavegacao();
+  const gestao = chave === "abaSecretaria";
+  state[chave] = id;
+  const grupo = grupos.find((g) => g.abas.some(([aba]) => aba === id));
+  if (grupo) ultimaAbaDoGrupo[grupo.rotulo] = id;
+  if (!gestao) {
+    state.dizimistaSelecionado = null;
+    state.dizimistaCompletando = null;
+  }
+  document.getElementById("conteudo").innerHTML = gestao ? renderGestao() : renderTesoureiro();
+  (gestao ? attachGestaoHandlers : attachTesoureiroHandlers)();
+  document.getElementById("nav-host").innerHTML = renderNavegacao();
+  attachNavegacao();
+  window.scrollTo({ top: 0 });
+}
+
 function render() {
   const app = document.getElementById("app");
   if (!state.token || !state.usuario) {
@@ -1013,8 +1178,8 @@ function abrirTrocaDeSenha() {
     botao.disabled = true;
     try {
       await api("/auth/trocar-senha", { method: "POST", body: { senha_atual: atual, senha_nova: nova } });
-      sucesso.innerHTML = `<span class="carimbo">Senha trocada ✓</span>`;
-      setTimeout(fecharPerfilDizimista, 1400);
+      fecharPerfilDizimista();
+      mostrarAviso("Senha alterada.");
     } catch (err) {
       erro.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
       botao.disabled = false;
@@ -1028,6 +1193,8 @@ function renderShell() {
     ? state.usuario.perfil === "paroco" ? "pároco · somente consulta" : "secretaria"
     : (ehAgente() ? "agente · " : "") + (nomeComunidade(state.usuario.comunidade_id) || "sem comunidade");
 
+  // monta o conteúdo antes da navegação: ele pode ajustar a aba (ex.: pároco nunca fica em Cadastros)
+  const conteudoInicial = ehSecretaria ? renderGestao() : renderTesoureiro();
   return `
     <header class="topbar">
       <div class="brand">
@@ -1037,13 +1204,18 @@ function renderShell() {
           <div class="sub">${escapeHtml(subtitulo)}</div>
         </div>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button class="sair" id="btn-trocar-senha">Trocar senha</button>
-        <button class="sair" id="btn-sair">Sair</button>
+      <div class="conta">
+        <button type="button" class="conta-btn" id="btn-conta" aria-haspopup="menu" aria-expanded="false" aria-label="Minha conta">${escapeHtml(iniciaisDoNome(state.usuario.nome))}</button>
+        <div class="conta-menu" id="conta-menu" role="menu" hidden>
+          <div class="conta-quem">${escapeHtml(state.usuario.nome)}<small>${escapeHtml(subtitulo)}</small></div>
+          <button type="button" role="menuitem" id="btn-trocar-senha">Trocar senha</button>
+          <button type="button" role="menuitem" id="btn-sair">Sair</button>
+        </div>
       </div>
     </header>
-    ${ehSecretaria ? renderNavSecretaria() + '<main id="conteudo">' + renderGestao() + "</main>" : renderNavTesoureiro() + '<main id="conteudo">' + renderTesoureiro() + "</main>"}
-    <footer style="text-align:center; padding:16px; font-size:11px; color:var(--muted);">
+    <div id="nav-host">${renderNavegacao()}</div>
+    <main id="conteudo">${conteudoInicial}</main>
+    <footer style="text-align:center; padding:16px; font-size:12.5px; color:var(--muted);">
       Dúvidas sobre o uso dos seus dados pessoais? Fale conosco: (11) 5050-5716
     </footer>
   `;
@@ -1072,55 +1244,15 @@ function attachShellHandlers() {
     });
   }
   document.getElementById("btn-trocar-senha").addEventListener("click", abrirTrocaDeSenha);
-  if (["secretaria", "paroco"].includes(state.usuario.perfil)) {
-    attachNavSecretaria();
-    attachGestaoHandlers();
-  } else {
-    attachNavTesoureiro();
-    attachTesoureiroHandlers();
-  }
+  attachMenuConta();
+  attachNavegacao();
+  if (["secretaria", "paroco"].includes(state.usuario.perfil)) attachGestaoHandlers();
+  else attachTesoureiroHandlers();
 }
 
 /* =========================================================
    VISÃO TESOUREIRO
    ========================================================= */
-function renderNavTesoureiro() {
-  if (ehAgente()) {
-    // agente: cadastrar/lançar e ver os aniversariantes da comunidade (sem relatórios)
-    const abasAgente = [["dizimo", "Dízimo"], ["aniversarios", "Aniversários"]];
-    return `<nav class="tabs">${abasAgente
-      .map(([id, label]) => `<button data-aba="${id}" class="${state.abaTesoureiro === id ? "ativo" : ""}">${label}</button>`)
-      .join("")}</nav>`;
-  }
-  const abas = [
-    ["dizimo", "Dízimo"],
-    ["ofertorio", "Ofertório"],
-    ["aniversarios", "Aniversários"],
-    // relatórios da própria comunidade (o backend já limita os dados à comunidade do tesoureiro)
-    ["consolidado", "Consolidado"],
-    ["balanco", "Balanço"],
-    ["estatisticas", "Estatísticas"],
-    ["lancamentos", "Lançamentos"],
-    ["etiquetas", "Etiquetas"],
-  ];
-  return `<nav class="tabs">${abas
-    .map(([id, label]) => `<button data-aba="${id}" class="${state.abaTesoureiro === id ? "ativo" : ""}">${label}</button>`)
-    .join("")}</nav>`;
-}
-
-function attachNavTesoureiro() {
-  document.querySelectorAll("nav.tabs button[data-aba]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      state.abaTesoureiro = btn.dataset.aba;
-      state.dizimistaSelecionado = null;
-      state.dizimistaCompletando = null;
-      document.getElementById("conteudo").innerHTML = renderTesoureiro();
-      attachTesoureiroHandlers();
-      document.querySelectorAll("nav.tabs button[data-aba]").forEach((b) => b.classList.toggle("ativo", b.dataset.aba === state.abaTesoureiro));
-    });
-  });
-}
-
 function renderTesoureiro() {
   if (state.abaTesoureiro === "dizimo") return renderAbaDizimo();
   if (state.abaTesoureiro === "ofertorio") return renderAbaOfertorio();
@@ -1143,6 +1275,14 @@ function fixarSeletoresNaComunidadeDoTesoureiro() {
     sel.value = String(state.usuario.comunidade_id);
     const campo = sel.closest(".campo");
     if (campo) campo.style.display = "none";
+    // sobrou só um campo na linha: ele ocupa a largura toda
+    const linha = campo && campo.parentElement;
+    if (linha && linha.classList.contains("grid2") && [...linha.children].every((f) => f === campo || f.style.display === "none")) {
+      linha.style.display = "block";
+    }
+    // cartão que ficou vazio (só tinha o seletor de comunidade) some inteiro
+    const cartao = campo && campo.closest(".cartao");
+    if (cartao && cartao.innerText.trim() === "") cartao.style.display = "none";
   });
   // "separar por comunidade" não faz sentido pra quem só tem uma comunidade
   const sep = document.getElementById("est-separar-comunidade");
@@ -1200,10 +1340,12 @@ function renderAbaDizimo() {
       <div id="resultados-busca"></div>
       <button class="link-sel" id="btn-avulso" style="margin-top:8px;">+ lançar como avulso</button>
     </div>
-    <div class="cartao">
-      <h2>Novo dizimista</h2>
-      ${renderFormularioNovoDizimista()}
-    </div>
+    <details class="cartao recolhivel">
+      <summary>Cadastrar novo dizimista</summary>
+      <div class="recolhivel-corpo">
+        ${renderFormularioNovoDizimista()}
+      </div>
+    </details>
     <div class="cartao">
       <h2>${ehAgente() ? "Meus últimos lançamentos de dízimo" : "Últimos lançamentos de dízimo"}</h2>
       <div id="dz-lista">Carregando...</div>
@@ -1215,12 +1357,14 @@ function renderAbaDizimo() {
 /* ---------- Meu resumo do dia (PDF) — o agente presta contas ao tesoureiro ---------- */
 function renderCartaoMeuResumo() {
   return `
-    <div class="cartao">
-      <h2>Meu resumo do dia</h2>
+    <details class="cartao recolhivel">
+      <summary>Meu resumo do dia</summary>
+      <div class="recolhivel-corpo">
       <p class="muted">PDF só com o dízimo que você lançou no dia, para prestar contas ao tesoureiro.</p>
       <div class="campo" style="max-width:220px;"><label>Data</label><input type="date" id="mr-data" value="${hojeISO()}" max="${hojeISO()}" /></div>
       <button class="btn full" id="btn-meu-resumo">Gerar meu resumo do dia (PDF)</button>
-    </div>`;
+      </div>
+    </details>`;
 }
 
 function attachMeuResumoHandlers() {
@@ -1235,8 +1379,9 @@ function attachMeuResumoHandlers() {
 /* ---------- Resumo do dia (PDF) — tesoureiro e secretaria ---------- */
 function renderCartaoResumoDia(comEscolhaDeComunidade) {
   return `
-    <div class="cartao">
-      <h2>Resumo do dia</h2>
+    <details class="cartao recolhivel">
+      <summary>Resumo do dia (PDF)</summary>
+      <div class="recolhivel-corpo">
       <p class="muted">PDF com tudo que entrou no dia (dízimo e ofertório)${comEscolhaDeComunidade ? ", por comunidade" : ""}, para conferir com o caixa.</p>
       <div class="grid2">
         <div class="campo"><label>Data</label><input type="date" id="rd-data" value="${hojeISO()}" max="${hojeISO()}" /></div>
@@ -1251,7 +1396,8 @@ function renderCartaoResumoDia(comEscolhaDeComunidade) {
         }
       </div>
       <button class="btn full" id="btn-resumo-dia">Gerar resumo do dia (PDF)</button>
-    </div>`;
+      </div>
+    </details>`;
 }
 
 /* ---------- Fechamentos com o pároco: folha anual, fechamento semanal e anual ---------- */
@@ -1259,8 +1405,9 @@ function renderCartaoFechamentos() {
   const anoAtual = new Date().getFullYear();
   const anos = [anoAtual + 1, anoAtual, anoAtual - 1, anoAtual - 2, anoAtual - 3];
   return `
-    <div class="cartao">
-      <h2>Fechamentos e folhas</h2>
+    <details class="cartao recolhivel">
+      <summary>Fechamentos e folhas</summary>
+      <div class="recolhivel-corpo">
       <p class="muted">Documentos para fechar as contas com o pároco. Os valores seguem a data do pagamento.</p>
       <div class="grid2">
         <div class="campo"><label>Ano</label>
@@ -1292,7 +1439,8 @@ function renderCartaoFechamentos() {
       <h3 style="font-size:13px; margin:16px 0 8px;">Fechamento anual</h3>
       <button type="button" class="btn small" id="btn-fechamento-anual">Fechamento anual (PDF)</button>
       <div id="fc-erro" style="margin-top:10px;"></div>
-    </div>`;
+      </div>
+    </details>`;
 }
 
 function attachFechamentosHandlers() {
@@ -1358,7 +1506,7 @@ async function carregarListaContribuicoes() {
 
 function renderLinhaContribuicao(c, comComunidade) {
   const quem = c.dizimista_nome
-    ? `<span class="codigo mono">${escapeHtml(c.dizimista_codigo || "—")}</span>${linkDizimista(c.dizimista_id, escapeHtml(c.dizimista_nome))}`
+    ? `<span class="codigo mono">${escapeHtml(c.dizimista_codigo || "—")}</span> ${linkDizimista(c.dizimista_id, escapeHtml(c.dizimista_nome))}`
     : `${escapeHtml(c.nome_avulso || "avulso")} <span class="muted">(avulso)</span>`;
   const formaLabel = { dinheiro: "Dinheiro", pix: "Pix", cartao: "Cartão", outro: "Outro" }[c.forma_pagamento] || c.forma_pagamento;
   return `
@@ -1367,12 +1515,12 @@ function renderLinhaContribuicao(c, comComunidade) {
         <span>${quem}${comComunidade ? ` <span class="muted">· ${escapeHtml(nomeComunidade(c.comunidade_id))}</span>` : ""}</span>
         <span class="mono" style="font-weight:700;">${fmtMoeda(c.valor)}</span>
       </div>
-      <div class="muted" style="font-size:11px; display:flex; justify-content:space-between; align-items:center; width:100%;">
+      <div class="muted" style="font-size:12.5px; display:flex; justify-content:space-between; align-items:center; width:100%;">
         <span>${c.data_pagamento.split("-").reverse().join("/")} · ${formaLabel}${c.meses_referencia ? " · " + escapeHtml(c.meses_referencia) : ""}${c.lancado_por_nome ? " · lançado por " + escapeHtml(c.lancado_por_nome) : ""}</span>
         ${
           // agente só pode estornar o que ele mesmo lançou (o servidor também confere)
           state.usuario.perfil !== "paroco" && (state.usuario.perfil !== "agente" || c.lancado_por === state.usuario.id)
-            ? `<button type="button" class="link-sel" data-estornar-id="${c.id}" style="color:var(--brick); font-size:11px;">estornar</button>`
+            ? `<button type="button" class="link-sel" data-estornar-id="${c.id}" style="color:var(--brick);">estornar</button>`
             : ""
         }
       </div>
@@ -1384,47 +1532,41 @@ function renderLinhaContribuicao(c, comComunidade) {
 async function estornarLancamento(id, btn) {
   const linha = btn.closest(".linha-lista");
   const resumo = linha ? linha.innerText.replace(/\s+/g, " ").replace(/\s*estornar\s*$/, "").trim() : "";
-  if (!confirm(`Estornar este lançamento?\n\n${resumo}\n\nEle sai dos totais e relatórios, mas fica registrado no histórico de estornos.`)) return;
-  const motivo = (prompt("Motivo do estorno (obrigatório). Ex.: valor digitado errado:") || "").trim();
-  if (motivo.length < 3) {
-    alert("Estorno cancelado: informe o motivo (mínimo de 3 letras).");
-    return;
-  }
+  const motivo = await pedirMotivoDeEstorno("Estornar este lançamento?", resumo);
+  if (motivo === null) return;
   btn.disabled = true;
   try {
     await api(`/contribuicoes/${id}?motivo=${encodeURIComponent(motivo)}`, { method: "DELETE" });
+    mostrarAviso("Lançamento estornado.");
     if (document.getElementById("dz-lista")) carregarListaContribuicoes();
     if (document.getElementById("lc-lista")) carregarLancamentos();
     if (document.getElementById("estornos-lista")) carregarEstornos();
   } catch (err) {
-    alert(err.message);
+    mostrarAviso(err.message, "erro");
     btn.disabled = false;
   }
 }
 
 function botaoEstornarOfertorio(id) {
   if (state.usuario.perfil === "paroco") return ""; // o pároco só consulta
-  return `<button type="button" class="link-sel" data-estornar-oferta-id="${id}" style="color:var(--brick); font-size:11px; margin-left:8px;">estornar</button>`;
+  return `<button type="button" class="link-sel" data-estornar-oferta-id="${id}" style="color:var(--brick); margin-left:8px;">estornar</button>`;
 }
 
 /* Estorno do ofertório: confirmação + motivo; fica registrado no histórico. */
 async function estornarOfertorio(id, btn) {
   const linha = btn.closest(".linha-lista");
   const resumo = linha ? linha.innerText.replace(/\s+/g, " ").replace(/\s*estornar\s*$/, "").trim() : "";
-  if (!confirm(`Estornar este ofertório?\n\n${resumo}\n\nEle sai dos totais e relatórios, mas fica registrado no histórico de estornos.`)) return;
-  const motivo = (prompt("Motivo do estorno (obrigatório). Ex.: valor digitado errado:") || "").trim();
-  if (motivo.length < 3) {
-    alert("Estorno cancelado: informe o motivo (mínimo de 3 letras).");
-    return;
-  }
+  const motivo = await pedirMotivoDeEstorno("Estornar este ofertório?", resumo);
+  if (motivo === null) return;
   btn.disabled = true;
   try {
     await api(`/ofertorio/${id}?motivo=${encodeURIComponent(motivo)}`, { method: "DELETE" });
+    mostrarAviso("Ofertório estornado.");
     if (document.getElementById("of-lista")) carregarListaOfertorio();
     if (document.getElementById("lc-ofertorio")) carregarOfertoriosLancados();
     if (document.getElementById("estornos-lista")) carregarEstornos();
   } catch (err) {
-    alert(err.message);
+    mostrarAviso(err.message, "erro");
     btn.disabled = false;
   }
 }
@@ -1464,7 +1606,7 @@ async function carregarEstornos() {
             <span>${e.titulo}</span>
             <span class="mono" style="font-weight:700;">${fmtMoeda(e.valor)}</span>
           </div>
-          <div class="muted" style="font-size:11px;">
+          <div class="muted" style="font-size:12.5px;">
             <span class="chip alerta">${e.tipo}</span> ${e.detalhe} · estornado por ${escapeHtml(e.por || "—")} em ${escapeHtml(fmtDataHoraBR(e.quando))}
           </div>
           <div style="font-size:12px;">Motivo: ${escapeHtml(e.motivo || "—")}</div>
@@ -1622,7 +1764,7 @@ function attachFormularioNovoDizimistaHandlers(comunidadeIdFixo, aoSalvar) {
       const resultado = await enviarDizimistaConfirmandoDuplicado("POST", "/dizimistas", corpo);
       cadastradosSessao.unshift({ nome: resultado.nome, codigo: resultado.codigo });
       renderSessao();
-      sucessoDiv.innerHTML = `<span class="carimbo">Cadastrado ✓ — código ${escapeHtml(resultado.codigo)}</span>`;
+      mostrarAviso(`Cadastrado: código ${resultado.codigo}`);
       document.getElementById("form-novo-dizimista").reset();
       const statusCep = document.getElementById("nd-cep-status");
       if (statusCep) statusCep.textContent = "";
@@ -1670,7 +1812,7 @@ function attachAbaDizimoHandlers() {
             .map(
               (d) => `
           <div class="linha-lista">
-            <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}${
+            <span><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> ${linkDizimista(d.id, escapeHtml(d.nome))}${
               d.comunidade_id !== comunidadeDeLancamento()
                 ? ` <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span>`
                 : ""
@@ -1840,7 +1982,14 @@ function attachFormularioCompletarCadastroHandlers() {
     if (valor("ag-cpf")) corpo.cpf = valor("ag-cpf");
     const selSituacao = document.getElementById("ag-status");
     if (selSituacao && selSituacao.value !== state.dizimistaCompletando.status) {
-      if (selSituacao.value !== "ativo" && !confirm(`Marcar ${state.dizimistaCompletando.nome} como "${selSituacao.value}"? Ela deixa de contar nos dizimistas ativos e na taxa de adesão.`)) return;
+      if (
+        selSituacao.value !== "ativo" &&
+        !(await confirmarAcao(`${state.dizimistaCompletando.nome} deixa de contar nos dizimistas ativos e na taxa de adesão.`, {
+          titulo: `Marcar como "${selSituacao.value}"?`,
+          confirmar: "Marcar",
+        }))
+      )
+        return;
       corpo.status = selSituacao.value;
     }
 
@@ -1852,7 +2001,7 @@ function attachFormularioCompletarCadastroHandlers() {
     try {
       const salvo = await enviarDizimistaConfirmandoDuplicado("PATCH", `/dizimistas/${state.dizimistaCompletando.id}`, corpo);
       state.dizimistaCompletando = salvo;
-      sucessoDiv.innerHTML = `<span class="carimbo">Cadastro salvo ✓</span>`;
+      mostrarAviso("Cadastro salvo.");
       setTimeout(() => {
         if (state.dizimistaCompletando === salvo) sair(salvo);
       }, 900);
@@ -1945,7 +2094,7 @@ function attachFormularioContribuicaoHandlers() {
       return;
     }
     // valores altos costumam ser erro de digitação (ex: 1000 em vez de 10,00)
-    if (corpo.valor >= 5000 && !confirm(`Confirma o lançamento de ${fmtMoeda(corpo.valor)}? É um valor alto.`)) return;
+    if (corpo.valor >= 5000 && !(await confirmarAcao("É um valor alto. Confira se não faltou uma vírgula.", { titulo: `Lançar ${fmtMoeda(corpo.valor)}?`, confirmar: "Lançar" }))) return;
 
     // trava o botão enquanto envia: o servidor pode demorar, e um segundo clique
     // lançaria o mesmo dízimo duas vezes
@@ -1956,7 +2105,7 @@ function attachFormularioContribuicaoHandlers() {
     botao.textContent = "Lançando...";
     try {
       await lancarDizimoConfirmandoSituacao(corpo);
-      sucessoDiv.innerHTML = `<span class="carimbo">Lançado ✓ ${fmtMoeda(corpo.valor)}</span>`;
+      mostrarAviso(`Dízimo de ${fmtMoeda(corpo.valor)} lançado.`);
       document.getElementById("form-contribuicao").reset();
     } catch (err) {
       erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
@@ -2034,7 +2183,7 @@ function attachAbaOfertorioHandlers() {
     botao.textContent = "Lançando...";
     try {
       await api("/ofertorio", { method: "POST", body: corpo });
-      sucessoDiv.innerHTML = `<span class="carimbo">Lançado ✓</span>`;
+      mostrarAviso("Ofertório lançado.");
       document.getElementById("form-ofertorio").reset();
       document.getElementById("of-data").value = hojeISO();
       carregarListaOfertorio();
@@ -2171,33 +2320,6 @@ function attachAbaAniversariosHandlers(comTodasComunidades) {
 /* =========================================================
    VISÃO SECRETARIA / GESTÃO
    ========================================================= */
-function renderNavSecretaria() {
-  const abas = [
-    ["consolidado", "Consolidado"],
-    ["balanco", "Balanço"],
-    ["estatisticas", "Estatísticas"],
-    ["lancamentos", "Lançamentos"],
-    // o pároco só consulta: sem a tela de cadastros (editar, excluir, usuários, importação)
-    ...(state.usuario.perfil === "paroco" ? [] : [["cadastros", "Cadastros"]]),
-    ["aniversarios", "Aniversariantes"],
-    ["atividades", "Atividades"],
-  ];
-  return `<nav class="tabs">${abas
-    .map(([id, label]) => `<button data-aba="${id}" class="${state.abaSecretaria === id ? "ativo" : ""}">${label}</button>`)
-    .join("")}</nav>`;
-}
-
-function attachNavSecretaria() {
-  document.querySelectorAll("nav.tabs button[data-aba]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      state.abaSecretaria = btn.dataset.aba;
-      document.getElementById("conteudo").innerHTML = renderGestao();
-      attachGestaoHandlers();
-      document.querySelectorAll("nav.tabs button[data-aba]").forEach((b) => b.classList.toggle("ativo", b.dataset.aba === state.abaSecretaria));
-    });
-  });
-}
-
 function renderGestao() {
   // o pároco só consulta: nunca cai na tela de Cadastros, nem por estado guardado
   if (state.usuario.perfil === "paroco" && state.abaSecretaria === "cadastros") state.abaSecretaria = "consolidado";
@@ -2250,7 +2372,7 @@ async function carregarAtividades() {
             (a) => `
         <div class="linha-lista" style="flex-direction:column; align-items:flex-start; gap:2px;">
           <div style="font-size:13px;">${escapeHtml(a.descricao)}</div>
-          <div class="muted" style="font-size:11px;">por ${escapeHtml(a.usuario_nome || "—")}${a.usuario_perfil ? ` (${escapeHtml(perfis[a.usuario_perfil] || a.usuario_perfil)})` : ""} · ${escapeHtml(fmtDataHoraBR(a.quando))}</div>
+          <div class="muted" style="font-size:12.5px;">por ${escapeHtml(a.usuario_nome || "—")}${a.usuario_perfil ? ` (${escapeHtml(perfis[a.usuario_perfil] || a.usuario_perfil)})` : ""} · ${escapeHtml(fmtDataHoraBR(a.quando))}</div>
         </div>`
           )
           .join("")
@@ -2353,8 +2475,7 @@ function renderConsolidado() {
   ];
   const opcoesAno = [state.anoRelatorio - 1, state.anoRelatorio, state.anoRelatorio + 1];
   return `
-    <div class="cartao">
-      <div class="grid2" style="max-width:340px;">
+    <div class="filtros">
         <div class="campo">
           <label>Mês</label>
           <select id="rel-mes">
@@ -2367,7 +2488,6 @@ function renderConsolidado() {
             ${opcoesAno.map((a) => `<option value="${a}" ${a === state.anoRelatorio ? "selected" : ""}>${a}</option>`).join("")}
           </select>
         </div>
-      </div>
     </div>
     <div id="rel-conteudo">Carregando...</div>
     ${renderCartaoResumoDia(true)}
@@ -2416,7 +2536,7 @@ function renderConteudoRelatorio(dados) {
       )}</div></div>
     </div>
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">Comparativo entre comunidades</h2>
         <div class="legenda-cores">
           <span><i style="background:var(--dark);"></i>Dízimo</span>
@@ -2426,7 +2546,7 @@ function renderConteudoRelatorio(dados) {
       ${barras || '<div class="vazio">Sem lançamentos no período.</div>'}
     </div>
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">Por comunidade</h2>
         <div style="display:flex; gap:8px;">
           <button class="btn outline small" id="btn-exportar-balancete">Balancete (PDF)</button>
@@ -2464,7 +2584,7 @@ async function baixarArquivoProtegido(btn, url, nomeArquivo, mensagemGerando) {
     a.remove();
     URL.revokeObjectURL(objectUrl);
   } catch (err) {
-    alert(err.message);
+    mostrarAviso(err.message, "erro");
   } finally {
     btn.disabled = false;
     btn.textContent = textoOriginal;
@@ -2547,7 +2667,7 @@ function renderBalanco() {
 function _shellBalancoTendencia() {
   return `
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px 12px; margin-bottom:8px;">
         <h2 style="margin:0;">Balanço ao longo do tempo</h2>
         <div class="legenda-cores">
           <span><i style="background:var(--dark);"></i>Dízimo</span>
@@ -2557,7 +2677,7 @@ function _shellBalancoTendencia() {
       <div id="bl-grafico">Carregando...</div>
     </div>
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">Detalhamento</h2>
         <button class="btn outline small" id="btn-pdf-balanco">Exportar PDF</button>
       </div>
@@ -2569,7 +2689,7 @@ function _shellBalancoTendencia() {
 function _shellBalancoComparativo() {
   return `
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px 12px; margin-bottom:8px;">
         <h2 style="margin:0;">Comparativo com o mesmo período do ano anterior</h2>
         <div class="legenda-cores">
           <span><i style="background:var(--dark);"></i>Período atual</span>
@@ -2579,7 +2699,7 @@ function _shellBalancoComparativo() {
       <div id="bl-grafico">Carregando...</div>
     </div>
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">Detalhamento</h2>
         <div style="display:flex; gap:8px;">
           <button class="btn outline small" id="btn-pdf-balanco">Exportar PDF</button>
@@ -2819,7 +2939,7 @@ function renderEstatisticas() {
       <div id="est-comparativo" class="muted">Carregando...</div>
     </div>
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">Inadimplentes</h2>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <select id="est-meses-inadimplente" style="width:auto; padding:6px 10px; border:1px solid var(--cream-line); border-radius:8px;">
@@ -2856,12 +2976,12 @@ async function carregarEstatisticas() {
       <div class="metrica">
         <div class="label">Taxa de adesão (mês atual)</div>
         <div class="valor">${est.taxa_adesao}%</div>
-        <div class="muted" style="font-size:11px; margin-top:4px;">${est.dizimistas_que_contribuiram} de ${est.total_dizimistas_ativos} ativos contribuíram</div>
+        <div class="muted" style="font-size:12.5px; margin-top:4px;">${est.dizimistas_que_contribuiram} de ${est.total_dizimistas_ativos} ativos contribuíram</div>
       </div>
       <div class="metrica">
         <div class="label">Média por contribuinte</div>
         <div class="valor">${fmtMoeda(est.media_contribuicao)}</div>
-        <div class="muted" style="font-size:11px; margin-top:4px;">no mês atual</div>
+        <div class="muted" style="font-size:12.5px; margin-top:4px;">no mês atual</div>
       </div>
       <div class="metrica">
         <div class="label">Total arrecadado (dízimo, mês atual)</div>
@@ -2905,7 +3025,7 @@ async function carregarInadimplentes() {
             (d) => `
         <div class="linha-lista">
           <span>
-            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}
+            <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> ${linkDizimista(d.id, escapeHtml(d.nome))}
             ${!comunidadeId ? `<span class="muted"> · ${escapeHtml(d.comunidade_nome)}</span>` : ""}
           </span>
           <span class="muted" style="font-size:12px;">
@@ -3037,7 +3157,7 @@ async function carregarCadastroComunidades() {
             btn.disabled = false;
           }, 1500);
         } catch (err) {
-          alert(err.message);
+          mostrarAviso(err.message, "erro");
           btn.disabled = false;
         }
       });
@@ -3065,6 +3185,10 @@ function renderCadastroDizimistas() {
   }
   return `
     <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
+        <h2 style="margin:0;">Dizimistas</h2>
+        <button class="btn small" id="btn-novo-dizimista">+ Novo dizimista</button>
+      </div>
       <div class="grid2">
         <div class="campo">
           <label>Comunidade</label>
@@ -3078,46 +3202,44 @@ function renderCadastroDizimistas() {
           <input type="text" id="cd-busca" placeholder="Nome ou código..." />
         </div>
       </div>
-    </div>
-    <div class="cartao">
-      <h2>Quantidade de dizimistas</h2>
-      <div id="cd-contagem" class="muted">Carregando...</div>
-    </div>
-    <div class="cartao">
-      <h2>Completude do cadastro</h2>
-      <div id="cd-completude" class="muted">Carregando...</div>
-    </div>
-    <div class="cartao">
-      <h2>Etiquetas para carteirinha</h2>
-      <p class="muted">Gera um PDF com nome, código e comunidade de cada dizimista, no formato da folha adesiva Pimaco 6180 (30 por folha) — pronto pra imprimir e colar nas carteirinhas.</p>
-      <div class="grid2">
-        <div class="campo">
-          <label>Comunidade</label>
-          <select id="et-comunidade">
-            <option value="">Selecione uma comunidade...</option>
-            ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
-          </select>
-        </div>
-        <div class="campo">
-          <label><input type="checkbox" id="et-apenas-ativos" checked style="width:auto; margin-right:6px;" />Só dizimistas ativos</label>
-        </div>
-      </div>
-      <button type="button" class="btn full" id="btn-gerar-etiquetas">Gerar PDF de etiquetas</button>
-      <div id="et-erro" style="margin-top:10px;"></div>
-    </div>
-    <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h2 style="margin:0;">Dizimistas</h2>
-        <button class="btn small" id="btn-novo-dizimista">+ Novo dizimista</button>
-      </div>
       <div id="cd-lista">Carregando...</div>
     </div>
-    <div class="cartao">
-      <h2>Zona de risco</h2>
-      <p class="muted">Renumera o código de TODOS os dizimistas de todas as comunidades, do zero, sem lacunas. Use só se os códigos ficaram bagunçados (ex: depois de muitas exclusões). Isso não muda nome, CPF nem nenhum outro dado — só o código.</p>
-      <button type="button" class="btn perigo" id="btn-renovar-codigos">Renovar códigos de todos os dizimistas</button>
-      <div id="renovar-resultado" style="margin-top:10px;"></div>
-    </div>
+    <details class="cartao recolhivel">
+      <summary>Quantidade de dizimistas</summary>
+      <div class="recolhivel-corpo"><div id="cd-contagem" class="muted">Carregando...</div></div>
+    </details>
+    <details class="cartao recolhivel">
+      <summary>Completude do cadastro</summary>
+      <div class="recolhivel-corpo"><div id="cd-completude" class="muted">Carregando...</div></div>
+    </details>
+    <details class="cartao recolhivel">
+      <summary>Etiquetas para carteirinha</summary>
+      <div class="recolhivel-corpo">
+        <p class="muted" style="margin-top:0;">Gera um PDF com nome, código e comunidade de cada dizimista, no formato da folha adesiva Pimaco 6180 (30 por folha) — pronto pra imprimir e colar nas carteirinhas.</p>
+        <div class="grid2">
+          <div class="campo">
+            <label>Comunidade</label>
+            <select id="et-comunidade">
+              <option value="">Selecione uma comunidade...</option>
+              ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+            </select>
+          </div>
+          <div class="campo">
+            <label><input type="checkbox" id="et-apenas-ativos" checked style="width:auto; margin-right:6px;" />Só dizimistas ativos</label>
+          </div>
+        </div>
+        <button type="button" class="btn full" id="btn-gerar-etiquetas">Gerar PDF de etiquetas</button>
+        <div id="et-erro" style="margin-top:10px;"></div>
+      </div>
+    </details>
+    <details class="cartao recolhivel">
+      <summary>Zona de risco</summary>
+      <div class="recolhivel-corpo">
+        <p class="muted" style="margin-top:0;">Renumera o código de TODOS os dizimistas de todas as comunidades, do zero, sem lacunas. Use só se os códigos ficaram bagunçados (ex: depois de muitas exclusões). Isso não muda nome, CPF nem nenhum outro dado — só o código.</p>
+        <button type="button" class="btn perigo" id="btn-renovar-codigos">Renovar códigos de todos os dizimistas</button>
+        <div id="renovar-resultado" style="margin-top:10px;"></div>
+      </div>
+    </details>
   `;
 }
 
@@ -3222,7 +3344,7 @@ function _linhaCadastroDizimista(d) {
   return `
     <div class="linha-lista">
       <span>
-        <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span>${linkDizimista(d.id, escapeHtml(d.nome))}
+        <span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> ${linkDizimista(d.id, escapeHtml(d.nome))}
         <span class="muted"> · ${escapeHtml(nomeComunidade(d.comunidade_id))}${d.status !== "ativo" ? " · " + escapeHtml(d.status) : ""}</span>
       </span>
       <button class="link-sel" data-editar-id="${d.id}">editar</button>
@@ -3326,9 +3448,10 @@ function attachCadastroDizimistasHandlers() {
   document.getElementById("btn-gerar-etiquetas").addEventListener("click", (e) => gerarEtiquetasPdf(e.target));
   document.getElementById("btn-renovar-codigos").addEventListener("click", async () => {
     if (
-      !confirm(
-        "Isso vai TROCAR o código de todos os dizimistas de todas as comunidades, renumerando do zero. Nomes, CPF e o resto dos dados não mudam — só o código. Essa ação não pode ser desfeita. Tem certeza?"
-      )
+      !(await confirmarAcao(
+        "Isso vai TROCAR o código de todos os dizimistas de todas as comunidades, renumerando do zero. Nomes, CPF e o resto dos dados não mudam — só o código. Essa ação não pode ser desfeita.",
+        { titulo: "Renovar todos os códigos?", confirmar: "Renovar códigos" }
+      ))
     )
       return;
     const resultadoDiv = document.getElementById("renovar-resultado");
@@ -3426,7 +3549,7 @@ async function carregarFormEdicaoDizimista() {
       attachGestaoHandlers();
     });
     document.getElementById("ed-excluir").addEventListener("click", async () => {
-      if (!confirm(`Excluir "${dizimista.nome}"? Essa ação não pode ser desfeita.`)) return;
+      if (!(await confirmarAcao("Essa ação não pode ser desfeita.", { titulo: `Excluir ${dizimista.nome}?`, confirmar: "Excluir" }))) return;
       const erroDiv = document.getElementById("ed-erro");
       erroDiv.innerHTML = "";
       try {
@@ -3457,7 +3580,7 @@ async function carregarFormEdicaoDizimista() {
       if (cpfDigitado) corpo.cpf = cpfDigitado; // só manda se a secretaria digitou algo novo
       try {
         await enviarDizimistaConfirmandoDuplicado("PATCH", `/dizimistas/${dizimista.id}`, corpo);
-        sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
+        mostrarAviso("Alterações salvas.");
       } catch (err) {
         erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
       }
@@ -3472,7 +3595,7 @@ function renderCadastroUsuarios() {
   if (state.usuarioFormAberto || state.usuarioEditandoId) return `<div id="cu-form-wrap">Carregando...</div>`;
   return `
     <div class="cartao">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <h2 style="margin:0;">Usuários</h2>
         <button class="btn small" id="btn-novo-usuario">+ Novo usuário</button>
       </div>
@@ -3577,7 +3700,7 @@ function montarFormUsuario(usuarioExistente) {
 
   if (editando) {
     document.getElementById("cu-excluir").addEventListener("click", async () => {
-      if (!confirm(`Excluir o usuário "${usuarioExistente.nome}"? Essa ação não pode ser desfeita.`)) return;
+      if (!(await confirmarAcao("Essa ação não pode ser desfeita.", { titulo: `Excluir o usuário ${usuarioExistente.nome}?`, confirmar: "Excluir" }))) return;
       const erroDiv = document.getElementById("cu-erro");
       erroDiv.innerHTML = "";
       try {
@@ -3618,7 +3741,7 @@ function montarFormUsuario(usuarioExistente) {
         if (["tesoureiro", "agente"].includes(perfil)) corpo.comunidade_id = Number(document.getElementById("cu-comunidade").value);
         if (senha) corpo.senha = senha;
         await api(`/usuarios/${usuarioExistente.id}`, { method: "PATCH", body: corpo });
-        sucessoDiv.innerHTML = `<div class="sucesso">Alterações salvas.</div>`;
+        mostrarAviso("Alterações salvas.");
       } else {
         const corpo = {
           nome: document.getElementById("cu-nome").value.trim(),
@@ -3628,7 +3751,7 @@ function montarFormUsuario(usuarioExistente) {
           comunidade_id: ["tesoureiro", "agente"].includes(perfil) ? Number(document.getElementById("cu-comunidade").value) : null,
         };
         await api("/usuarios", { method: "POST", body: corpo });
-        sucessoDiv.innerHTML = `<span class="carimbo">Criado ✓</span>`;
+        mostrarAviso("Usuário criado.");
         document.getElementById("form-usuario").reset();
       }
     } catch (err) {
