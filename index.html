@@ -1632,7 +1632,7 @@ function renderFormularioCompletarCadastro(d) {
                 <select id="ag-status">${["ativo", "inativo", "falecido"].map((x) => `<option value="${x}" ${x === d.status ? "selected" : ""}>${x}</option>`).join("")}</select>
               </div>`
         }
-        <div class="campo"><label>CPF</label><input type="text" id="ag-cpf" placeholder="${escapeHtml(d.cpf_mascarado || "000.000.000-00")}" /></div>
+        <div class="campo"><label>CPF${d.cpf_mascarado ? ' <span class="muted">(já cadastrado — só a secretaria altera)</span>' : ""}</label><input type="text" id="ag-cpf" placeholder="${escapeHtml(d.cpf_mascarado || "000.000.000-00")}" ${d.cpf_mascarado ? "disabled" : ""} /></div>
         <div class="grid2">
           <div class="campo${faltando("data de nascimento")}"><label>Data de nascimento${jaTem("data de nascimento") ? ' <span class="muted">(já preenchida — só para trocar)</span>' : " *"}</label><input type="date" id="ag-nascimento" value="${d.data_nascimento || ""}" max="${hojeISO()}" /></div>
           <div class="campo${faltando("telefone")}"><label>Telefone</label><input type="text" id="ag-telefone" value="${escapeHtml(d.telefone || "")}" placeholder="${dica("telefone")}" /></div>
