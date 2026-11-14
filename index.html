@@ -1017,7 +1017,7 @@ function renderTesoureiro() {
    comunidade ("Todas", etc.). Pro tesoureiro o seletor some e fica fixo na
    comunidade dele (o backend também força isso, então não dá pra burlar). */
 function fixarSeletoresNaComunidadeDoTesoureiro() {
-  ["bl-comunidade", "est-comunidade", "lc-comunidade", "rd-comunidade", "et-comunidade"].forEach((id) => {
+  ["bl-comunidade", "est-comunidade", "lc-comunidade", "rd-comunidade", "et-comunidade", "fc-comunidade"].forEach((id) => {
     const sel = document.getElementById(id);
     if (!sel) return;
     sel.value = String(state.usuario.comunidade_id);
@@ -1140,6 +1140,79 @@ function renderCartaoResumoDia(comEscolhaDeComunidade) {
       </div>
       <button class="btn full" id="btn-resumo-dia">Gerar resumo do dia (PDF)</button>
     </div>`;
+}
+
+/* ---------- Fechamentos com o pároco: folha anual, fechamento semanal e anual ---------- */
+function renderCartaoFechamentos() {
+  const anoAtual = new Date().getFullYear();
+  const anos = [anoAtual + 1, anoAtual, anoAtual - 1, anoAtual - 2, anoAtual - 3];
+  return `
+    <div class="cartao">
+      <h2>Fechamentos e folhas</h2>
+      <p class="muted">Documentos para fechar as contas com o pároco. Os valores seguem a data do pagamento.</p>
+      <div class="grid2">
+        <div class="campo"><label>Ano</label>
+          <select id="fc-ano">${anos.map((a) => `<option value="${a}" ${a === anoAtual ? "selected" : ""}>${a}</option>`).join("")}</select>
+        </div>
+        <div class="campo"><label>Comunidade</label>
+          <select id="fc-comunidade">
+            <option value="">Todas</option>
+            ${state.comunidades.map((c) => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+
+      <h3 style="font-size:13px; margin:14px 0 4px;">Folha anual de dízimo <span class="muted">(dizimistas × meses)</span></h3>
+      <p class="muted" style="margin:0 0 8px;">Uma comunidade por vez, em folha retrato. A folha em branco sai só com os nomes, para preencher à mão.</p>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <button type="button" class="btn small" id="btn-folha-pdf">Folha anual (PDF)</button>
+        <button type="button" class="btn outline small" id="btn-folha-excel">Excel</button>
+        <button type="button" class="btn outline small" id="btn-folha-branco">Folha em branco (PDF)</button>
+      </div>
+
+      <h3 style="font-size:13px; margin:16px 0 4px;">Fechamento semanal</h3>
+      <div class="grid2" style="align-items:end;">
+        <div class="campo" style="margin:0;"><label>Semana que contém o dia</label><input type="date" id="fc-data" value="${hojeISO()}" /></div>
+        <button type="button" class="btn small" id="btn-fechamento-semanal">Fechamento semanal (PDF)</button>
+      </div>
+      <p class="muted" style="margin:6px 0 0;">A semana vai de segunda a domingo.</p>
+
+      <h3 style="font-size:13px; margin:16px 0 8px;">Fechamento anual</h3>
+      <button type="button" class="btn small" id="btn-fechamento-anual">Fechamento anual (PDF)</button>
+      <div id="fc-erro" style="margin-top:10px;"></div>
+    </div>`;
+}
+
+function attachFechamentosHandlers() {
+  const ano = () => document.getElementById("fc-ano").value;
+  const comunidade = () => document.getElementById("fc-comunidade").value;
+  const avisar = (texto) => {
+    document.getElementById("fc-erro").innerHTML = texto ? `<div class="erro">${escapeHtml(texto)}</div>` : "";
+  };
+  const comFolha = (btn, caminho, extra, nomeArquivo) => {
+    avisar("");
+    if (!comunidade()) {
+      avisar("Escolha uma comunidade: a folha anual é feita para uma comunidade por vez.");
+      return;
+    }
+    baixarArquivoProtegido(btn, `${API_BASE}/relatorios/${caminho}?ano=${ano()}&comunidade_id=${comunidade()}${extra}`, nomeArquivo, "Gerando...");
+  };
+  document.getElementById("btn-folha-pdf").addEventListener("click", (e) =>
+    comFolha(e.target, "folha-anual/pdf", "", `folha-anual-${ano()}.pdf`));
+  document.getElementById("btn-folha-excel").addEventListener("click", (e) =>
+    comFolha(e.target, "folha-anual/excel", "", `folha-anual-${ano()}.xlsx`));
+  document.getElementById("btn-folha-branco").addEventListener("click", (e) =>
+    comFolha(e.target, "folha-anual/pdf", "&em_branco=true", `folha-anual-${ano()}-em-branco.pdf`));
+
+  document.getElementById("btn-fechamento-semanal").addEventListener("click", (e) => {
+    avisar("");
+    const data = document.getElementById("fc-data").value || hojeISO();
+    baixarArquivoProtegido(e.target, `${API_BASE}/relatorios/fechamento-semanal/pdf?data=${data}` + (comunidade() ? `&comunidade_id=${comunidade()}` : ""), `fechamento-semanal-${data}.pdf`, "Gerando...");
+  });
+  document.getElementById("btn-fechamento-anual").addEventListener("click", (e) => {
+    avisar("");
+    baixarArquivoProtegido(e.target, `${API_BASE}/relatorios/fechamento-anual/pdf?ano=${ano()}` + (comunidade() ? `&comunidade_id=${comunidade()}` : ""), `fechamento-anual-${ano()}.pdf`, "Gerando...");
+  });
 }
 
 function attachResumoDiaHandlers() {
@@ -2044,6 +2117,7 @@ function renderConsolidado() {
     </div>
     <div id="rel-conteudo">Carregando...</div>
     ${renderCartaoResumoDia(true)}
+    ${renderCartaoFechamentos()}
   `;
 }
 
@@ -2174,6 +2248,7 @@ async function carregarRelatorio() {
 function attachConsolidadoHandlers() {
   carregarRelatorio();
   attachResumoDiaHandlers();
+  attachFechamentosHandlers();
   document.getElementById("rel-mes").addEventListener("change", (e) => {
     state.mesRelatorio = Number(e.target.value);
     carregarRelatorio();
