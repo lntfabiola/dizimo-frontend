@@ -629,6 +629,22 @@ async function erroDeHttp(res) {
   return erro;
 }
 
+/* Lançar dízimo: se o dizimista está inativo/falecido, o servidor pede confirmação. */
+async function lancarDizimoConfirmandoSituacao(corpo) {
+  try {
+    return await api("/contribuicoes", { method: "POST", body: { ...corpo } });
+  } catch (err) {
+    const d = err.detalhe;
+    if (err.status === 409 && d && typeof d === "object" && d.codigo === "dizimista_nao_ativo") {
+      if (!confirm(`${d.mensagem}\n\nLançar o dízimo mesmo assim?`)) {
+        throw new Error(`Lançamento cancelado — o dizimista está marcado como "${d.situacao}".`);
+      }
+      return api("/contribuicoes", { method: "POST", body: { ...corpo, confirmar_situacao: true } });
+    }
+    throw err;
+  }
+}
+
 /* Cadastro/edição de dizimista: se o servidor achar que pode ser alguém que já existe,
    mostra quem é e pergunta; só repete o envio se a pessoa confirmar que é outra. */
 async function enviarDizimistaConfirmandoDuplicado(metodo, caminho, corpo) {
@@ -925,6 +941,17 @@ function nomeComunidade(id) {
   return c ? c.nome : "";
 }
 
+/* Tesoureiro e agente só lançam com data dos últimos 7 dias (o servidor também confere);
+   a secretaria/pároco não tem limite. */
+function atributosDataLancamento() {
+  const max = `max="${hojeISO()}"`;
+  if (state.usuario.perfil === "secretaria") return max;
+  const d = new Date(hojeISO() + "T12:00:00");
+  d.setDate(d.getDate() - 7);
+  const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return `min="${iso}" ${max} title="Você pode lançar com data de até 7 dias atrás"`;
+}
+
 function ehAgente() {
   return state.usuario && state.usuario.perfil === "agente";
 }
@@ -973,6 +1000,11 @@ function attachShellHandlers() {
       if (estornar) {
         e.preventDefault();
         estornarLancamento(estornar.dataset.estornarId, estornar);
+      }
+      const estornarOferta = e.target.closest("[data-estornar-oferta-id]");
+      if (estornarOferta) {
+        e.preventDefault();
+        estornarOfertorio(estornarOferta.dataset.estornarOfertaId, estornarOferta);
       }
     });
   }
@@ -1286,6 +1318,28 @@ async function estornarLancamento(id, btn) {
   }
 }
 
+/* Estorno do ofertório: confirmação + motivo; fica registrado no histórico. */
+async function estornarOfertorio(id, btn) {
+  const linha = btn.closest(".linha-lista");
+  const resumo = linha ? linha.innerText.replace(/\s+/g, " ").replace(/\s*estornar\s*$/, "").trim() : "";
+  if (!confirm(`Estornar este ofertório?\n\n${resumo}\n\nEle sai dos totais e relatórios, mas fica registrado no histórico de estornos.`)) return;
+  const motivo = (prompt("Motivo do estorno (obrigatório). Ex.: valor digitado errado:") || "").trim();
+  if (motivo.length < 3) {
+    alert("Estorno cancelado: informe o motivo (mínimo de 3 letras).");
+    return;
+  }
+  btn.disabled = true;
+  try {
+    await api(`/ofertorio/${id}?motivo=${encodeURIComponent(motivo)}`, { method: "DELETE" });
+    if (document.getElementById("of-lista")) carregarListaOfertorio();
+    if (document.getElementById("lc-ofertorio")) carregarOfertoriosLancados();
+    if (document.getElementById("estornos-lista")) carregarEstornos();
+  } catch (err) {
+    alert(err.message);
+    btn.disabled = false;
+  }
+}
+
 function fmtDataHoraBR(iso) {
   if (!iso) return "—";
   // o servidor devolve a hora em UTC, sem o "Z"; convertemos pro horário de Brasília
@@ -1297,18 +1351,32 @@ async function carregarEstornos() {
   const container = document.getElementById("estornos-lista");
   if (!container) return;
   try {
-    const lista = await api("/contribuicoes/estornos?limite=30");
-    container.innerHTML = lista.length
-      ? lista
+    const [dizimos, ofertorios] = await Promise.all([api("/contribuicoes/estornos?limite=30"), api("/ofertorio/estornos?limite=30")]);
+    const itens = [
+      ...dizimos.map((e) => ({
+        tipo: "Dízimo", quando: e.estornado_em, valor: e.valor, motivo: e.motivo, por: e.estornado_por_nome,
+        titulo: `${escapeHtml(e.dizimista_nome || e.nome_avulso || "avulso")} <span class="muted">· ${escapeHtml(nomeComunidade(e.comunidade_id))}</span>`,
+        detalhe: `Lançamento de ${fmtDataBR(e.data_pagamento)}`,
+      })),
+      ...ofertorios.map((e) => ({
+        tipo: "Ofertório", quando: e.estornado_em, valor: e.valor_dinheiro, motivo: e.motivo, por: e.estornado_por_nome,
+        titulo: `Ofertório <span class="muted">· ${escapeHtml(nomeComunidade(e.comunidade_id))}</span>`,
+        detalhe: `Missa de ${fmtDataBR(e.data_missa)}`,
+      })),
+    ]
+      .sort((a, b) => String(b.quando || "").localeCompare(String(a.quando || "")))
+      .slice(0, 30);
+    container.innerHTML = itens.length
+      ? itens
           .map(
             (e) => `
         <div class="linha-lista" style="flex-direction:column; align-items:flex-start; gap:3px;">
           <div style="display:flex; justify-content:space-between; width:100%;">
-            <span>${escapeHtml(e.dizimista_nome || e.nome_avulso || "avulso")} <span class="muted">· ${escapeHtml(nomeComunidade(e.comunidade_id))}</span></span>
+            <span>${e.titulo}</span>
             <span class="mono" style="font-weight:700;">${fmtMoeda(e.valor)}</span>
           </div>
           <div class="muted" style="font-size:11px;">
-            Lançamento de ${fmtDataBR(e.data_pagamento)} · estornado por ${escapeHtml(e.estornado_por_nome || "—")} em ${escapeHtml(fmtDataHoraBR(e.estornado_em))}
+            <span class="chip alerta">${e.tipo}</span> ${e.detalhe} · estornado por ${escapeHtml(e.por || "—")} em ${escapeHtml(fmtDataHoraBR(e.quando))}
           </div>
           <div style="font-size:12px;">Motivo: ${escapeHtml(e.motivo || "—")}</div>
         </div>`
@@ -1717,12 +1785,17 @@ function renderFormularioContribuicao(dizimista, avulso) {
           ? ` <span class="muted">· cadastrado em ${escapeHtml(nomeComunidade(dizimista.comunidade_id))}</span>`
           : ""
       }</p>` : ""}
+      ${
+        !avulso && dizimista.status && dizimista.status !== "ativo"
+          ? `<div role="alert" style="margin:10px 0 4px; padding:8px 12px; border:1.5px solid var(--brick); border-radius:10px; background:rgba(168,64,47,.08); font-size:13px;"><b>Atenção:</b> este dizimista está marcado como <b>${escapeHtml(dizimista.status)}</b>.</div>`
+          : ""
+      }
       ${!avulso ? renderAvisoCadastroIncompleto(dizimista) : ""}
       <form id="form-contribuicao">
         ${avulso ? `<div class="campo"><label>Nome do doador *</label><input type="text" id="ct-nome-avulso" required /></div>` : ""}
         <div class="grid2">
           <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" min="0.01" id="ct-valor" required /></div>
-          <div class="campo"><label>Data do pagamento *</label><input type="date" id="ct-data" value="${hojeISO()}" required /></div>
+          <div class="campo"><label>Data do pagamento *</label><input type="date" id="ct-data" value="${hojeISO()}" ${atributosDataLancamento()} required /></div>
         </div>
         <div class="campo"><label>Meses de referência (opcional)</label><input type="text" id="ct-meses" placeholder="ex: jul e ago" /></div>
         <div class="pill-toggle" id="ct-forma-toggle">
@@ -1792,7 +1865,7 @@ function attachFormularioContribuicaoHandlers() {
     botao.disabled = true;
     botao.textContent = "Lançando...";
     try {
-      await api("/contribuicoes", { method: "POST", body: corpo });
+      await lancarDizimoConfirmandoSituacao(corpo);
       sucessoDiv.innerHTML = `<span class="carimbo">Lançado ✓ ${fmtMoeda(corpo.valor)}</span>`;
       document.getElementById("form-contribuicao").reset();
     } catch (err) {
@@ -1811,7 +1884,7 @@ function renderAbaOfertorio() {
       <h2>Oferta de ofertório</h2>
       <p class="muted">Coleta da missa — um lançamento por celebração.</p>
       <form id="form-ofertorio">
-        <div class="campo"><label>Data da missa *</label><input type="date" id="of-data" value="${hojeISO()}" required /></div>
+        <div class="campo"><label>Data da missa *</label><input type="date" id="of-data" value="${hojeISO()}" ${atributosDataLancamento()} required /></div>
         <div class="campo" style="max-width:260px;"><label>Valor do ofertório (R$) *</label><input type="number" step="0.01" min="0.01" id="of-dinheiro" required /></div>
         <div id="of-erro"></div>
         <div id="of-sucesso"></div>
@@ -1837,7 +1910,7 @@ async function carregarListaOfertorio() {
             (o) => `
         <div class="linha-lista">
           <span>${o.data_missa.split("-").reverse().join("/")}</span>
-          <span class="mono">${fmtMoeda(o.valor_dinheiro)}</span>
+          <span class="mono">${fmtMoeda(o.valor_dinheiro)} <button type="button" class="link-sel" data-estornar-oferta-id="${o.id}" style="color:var(--brick); font-size:11px; margin-left:8px;">estornar</button></span>
         </div>`
           )
           .join("")
@@ -2068,6 +2141,10 @@ function renderLancamentos() {
       <h2>Contribuições de dízimo</h2>
       <div id="lc-lista">Carregando...</div>
     </div>
+    <div class="cartao">
+      <h2>Ofertório lançado</h2>
+      <div id="lc-ofertorio">Carregando...</div>
+    </div>
     ${
       state.usuario.perfil === "secretaria"
         ? `<div class="cartao">
@@ -2095,10 +2172,37 @@ async function carregarLancamentos() {
   }
 }
 
+async function carregarOfertoriosLancados() {
+  const container = document.getElementById("lc-ofertorio");
+  if (!container) return;
+  const comunidadeId = document.getElementById("lc-comunidade").value;
+  try {
+    const lista = await api("/ofertorio" + (comunidadeId ? `?comunidade_id=${comunidadeId}` : ""));
+    container.innerHTML = lista.length
+      ? lista
+          .slice(0, 50)
+          .map(
+            (o) => `
+        <div class="linha-lista">
+          <span>${fmtDataBR(o.data_missa)}${!comunidadeId ? ` <span class="muted">· ${escapeHtml(nomeComunidade(o.comunidade_id))}</span>` : ""}</span>
+          <span class="mono">${fmtMoeda(o.valor_dinheiro)} <button type="button" class="link-sel" data-estornar-oferta-id="${o.id}" style="color:var(--brick); font-size:11px; margin-left:8px;">estornar</button></span>
+        </div>`
+          )
+          .join("")
+      : `<div class="vazio">Nenhum ofertório lançado.</div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+  }
+}
+
 function attachLancamentosHandlers() {
   carregarLancamentos();
+  carregarOfertoriosLancados();
   carregarEstornos();
-  document.getElementById("lc-comunidade").addEventListener("change", carregarLancamentos);
+  document.getElementById("lc-comunidade").addEventListener("change", () => {
+    carregarLancamentos();
+    carregarOfertoriosLancados();
+  });
 }
 
 /* ---------- Consolidado ---------- */
