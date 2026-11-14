@@ -529,6 +529,8 @@ const state = {
   comunidadeAgente: (() => { try { return localStorage.getItem("dizimo_comunidade_agente") || ""; } catch (e) { return ""; } })(),
   periodoAniversario: "semana",
   dizimistaSelecionado: null,
+  dizimistaCompletando: null, // agente: dizimista cujo cadastro está sendo completado
+  completandoVoltarPara: "busca",
   buscaDizimista: "",
   resultadosBusca: [],
   mesRelatorio: new Date().getMonth() + 1,
@@ -667,6 +669,8 @@ async function apiLogin(login, senha) {
 function logout() {
   state.token = null;
   state.usuario = null;
+  state.dizimistaSelecionado = null; // não deixa tela de um usuário aparecer pro próximo
+  state.dizimistaCompletando = null;
   localStorage.removeItem("dizimo_token");
   render();
 }
@@ -1054,6 +1058,7 @@ function attachTesoureiroHandlers() {
 
 /* ---------- Aba Dízimo ---------- */
 function renderAbaDizimo() {
+  if (state.dizimistaCompletando) return renderFormularioCompletarCadastro(state.dizimistaCompletando);
   if (state.dizimistaSelecionado === "avulso") {
     return renderFormularioContribuicao(null, true);
   }
@@ -1401,6 +1406,10 @@ function attachFormularioNovoDizimistaHandlers(comunidadeIdFixo, aoSalvar) {
 }
 
 function attachAbaDizimoHandlers() {
+  if (state.dizimistaCompletando) {
+    attachFormularioCompletarCadastroHandlers();
+    return;
+  }
   if (state.dizimistaSelecionado) {
     attachFormularioContribuicaoHandlers();
     return;
@@ -1435,7 +1444,10 @@ function attachAbaDizimoHandlers() {
                 ? ` <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span>`
                 : ""
             }</span>
-            <button class="link-sel" data-id="${d.id}">selecionar</button>
+            <span style="display:flex; gap:12px; flex:none;">
+              ${ehAgente() ? `<button class="link-sel" data-completar-id="${d.id}">completar cadastro</button>` : ""}
+              <button class="link-sel" data-id="${d.id}">selecionar</button>
+            </span>
           </div>`
             )
             .join("")
@@ -1447,6 +1459,11 @@ function attachAbaDizimoHandlers() {
           document.getElementById("conteudo").innerHTML = renderTesoureiro();
           attachTesoureiroHandlers();
         });
+      });
+      container.querySelectorAll("button[data-completar-id]").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          abrirCompletarCadastro(state.resultadosBusca.find((d) => d.id === Number(btn.dataset.completarId)), "busca")
+        );
       });
     } catch (err) {
       container.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
@@ -1492,8 +1509,94 @@ function renderAvisoCadastroIncompleto(dizimista) {
   return `
     <div id="aviso-cadastro-incompleto" role="alert" style="margin:10px 0 14px; padding:10px 12px; border:1.5px solid var(--gold); border-radius:10px; background:rgba(201,162,74,.14); font-size:13px;">
       <b>Cadastro incompleto</b> — falta: ${faltam.map(escapeHtml).join(", ")}.
-      <div class="muted" style="font-size:12px; margin-top:2px;">Aproveite para pedir esses dados à pessoa e passe para a secretaria completar. O lançamento pode ser feito normalmente.</div>
+      ${
+        ehAgente()
+          ? `<div class="muted" style="font-size:12px; margin-top:2px;">Aproveite para pedir esses dados à pessoa e complete o cadastro agora. O lançamento pode ser feito normalmente.</div>
+             <button type="button" class="btn small" id="btn-completar-cadastro" style="margin-top:8px;">Completar cadastro</button>`
+          : `<div class="muted" style="font-size:12px; margin-top:2px;">Aproveite para pedir esses dados à pessoa e passe para a secretaria completar. O lançamento pode ser feito normalmente.</div>`
+      }
     </div>`;
+}
+
+/* ---------- Agente: completar / corrigir o cadastro de um dizimista ---------- */
+function abrirCompletarCadastro(dizimista, voltarPara) {
+  state.dizimistaCompletando = dizimista;
+  state.completandoVoltarPara = voltarPara; // "busca" ou "lancar"
+  document.getElementById("conteudo").innerHTML = renderTesoureiro();
+  attachTesoureiroHandlers();
+}
+
+function renderFormularioCompletarCadastro(d) {
+  return `
+    <div class="cartao">
+      <button class="link-sel" id="ag-voltar" style="margin-bottom:10px;">&larr; voltar</button>
+      <h2>Completar cadastro</h2>
+      <p class="muted"><span class="codigo mono">${escapeHtml(d.codigo || "—")}</span> ${escapeHtml(d.nome)} <span class="muted">· ${escapeHtml(nomeComunidade(d.comunidade_id))}</span></p>
+      <p class="muted">Preencha o que estiver faltando ou corrija algum dado. Informações que já estão no cadastro podem ser trocadas, mas não apagadas.</p>
+      <form id="form-completar-cadastro">
+        <div class="campo"><label>Nome completo *</label><input type="text" id="ag-nome" value="${escapeHtml(d.nome)}" required /></div>
+        <div class="campo"><label>CPF</label><input type="text" id="ag-cpf" placeholder="${escapeHtml(d.cpf_mascarado || "000.000.000-00")}" /></div>
+        <div class="grid2">
+          <div class="campo"><label>Data de nascimento *</label><input type="date" id="ag-nascimento" value="${d.data_nascimento || ""}" required max="${hojeISO()}" /></div>
+          <div class="campo"><label>Telefone</label><input type="text" id="ag-telefone" value="${escapeHtml(d.telefone || "")}" /></div>
+        </div>
+        <div class="grid2">
+          <div class="campo"><label>CEP</label><input type="text" id="ag-cep" value="${escapeHtml(d.cep || "")}" placeholder="00000-000" /></div>
+          <div class="campo"><label>Número</label><input type="text" id="ag-numero" /></div>
+        </div>
+        <div id="ag-cep-status" class="muted" style="margin:-6px 0 10px;"></div>
+        <div class="campo"><label>Endereço</label><input type="text" id="ag-endereco" value="${escapeHtml(d.endereco || "")}" /></div>
+        <div id="ag-erro"></div>
+        <div id="ag-sucesso"></div>
+        <button type="submit" class="btn full">Salvar cadastro</button>
+      </form>
+    </div>`;
+}
+
+function attachFormularioCompletarCadastroHandlers() {
+  ligarAutoPreenchimentoCep("ag");
+  const sair = (dizimistaAtualizado) => {
+    const voltarPara = state.completandoVoltarPara;
+    state.dizimistaCompletando = null;
+    if (voltarPara === "lancar" && dizimistaAtualizado) state.dizimistaSelecionado = dizimistaAtualizado;
+    document.getElementById("conteudo").innerHTML = renderTesoureiro();
+    attachTesoureiroHandlers();
+  };
+  document.getElementById("ag-voltar").addEventListener("click", () => sair(null));
+
+  document.getElementById("form-completar-cadastro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroDiv = document.getElementById("ag-erro");
+    const sucessoDiv = document.getElementById("ag-sucesso");
+    erroDiv.innerHTML = "";
+    sucessoDiv.innerHTML = "";
+    const valor = (id) => document.getElementById(id).value.trim();
+    // só manda o que tem conteúdo: o agente completa/corrige, não apaga
+    const corpo = { nome: valor("ag-nome"), data_nascimento: valor("ag-nascimento") };
+    if (valor("ag-telefone")) corpo.telefone = valor("ag-telefone");
+    if (valor("ag-cep")) corpo.cep = valor("ag-cep");
+    if (valor("ag-endereco")) corpo.endereco = valor("ag-endereco");
+    if (valor("ag-cpf")) corpo.cpf = valor("ag-cpf");
+
+    const botao = e.target.querySelector('button[type="submit"]');
+    if (botao.disabled) return;
+    const textoBotao = botao.textContent;
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+    try {
+      const salvo = await enviarDizimistaConfirmandoDuplicado("PATCH", `/dizimistas/${state.dizimistaCompletando.id}`, corpo);
+      state.dizimistaCompletando = salvo;
+      sucessoDiv.innerHTML = `<span class="carimbo">Cadastro salvo ✓</span>`;
+      setTimeout(() => {
+        if (state.dizimistaCompletando === salvo) sair(salvo);
+      }, 900);
+    } catch (err) {
+      erroDiv.innerHTML = `<div class="erro">${escapeHtml(err.message)}</div>`;
+    } finally {
+      botao.disabled = false;
+      botao.textContent = textoBotao;
+    }
+  });
 }
 
 function renderFormularioContribuicao(dizimista, avulso) {
@@ -1529,6 +1632,9 @@ function renderFormularioContribuicao(dizimista, avulso) {
 }
 
 function attachFormularioContribuicaoHandlers() {
+  const btnCompletar = document.getElementById("btn-completar-cadastro");
+  if (btnCompletar) btnCompletar.addEventListener("click", () => abrirCompletarCadastro(state.dizimistaSelecionado, "lancar"));
+
   document.getElementById("btn-voltar").addEventListener("click", () => {
     state.dizimistaSelecionado = null;
     document.getElementById("conteudo").innerHTML = renderTesoureiro();
