@@ -596,7 +596,7 @@ async function fetchComAviso(url, opts) {
 
 const NOMES_CAMPOS = {
   valor: "Valor", data_pagamento: "Data", data_missa: "Data da missa", nome: "Nome", cpf: "CPF",
-  valor_dinheiro: "Valor em dinheiro", valor_pix: "Valor em Pix", sigla: "Sigla", senha: "Senha",
+  valor_dinheiro: "Valor do ofertório", sigla: "Sigla", senha: "Senha",
   nome_avulso: "Nome do doador", telefone: "Telefone", cep: "CEP", data_nascimento: "Data de nascimento",
 };
 
@@ -1729,10 +1729,7 @@ function renderAbaOfertorio() {
       <p class="muted">Coleta da missa — um lançamento por celebração.</p>
       <form id="form-ofertorio">
         <div class="campo"><label>Data da missa *</label><input type="date" id="of-data" value="${hojeISO()}" required /></div>
-        <div class="grid2">
-          <div class="campo"><label>Valor em dinheiro (R$)</label><input type="number" step="0.01" min="0" id="of-dinheiro" value="0" /></div>
-          <div class="campo"><label>Valor em Pix (R$)</label><input type="number" step="0.01" min="0" id="of-pix" value="0" /></div>
-        </div>
+        <div class="campo" style="max-width:260px;"><label>Valor do ofertório (R$) *</label><input type="number" step="0.01" min="0.01" id="of-dinheiro" required /></div>
         <div id="of-erro"></div>
         <div id="of-sucesso"></div>
         <button type="submit" class="btn full">Lançar</button>
@@ -1757,7 +1754,7 @@ async function carregarListaOfertorio() {
             (o) => `
         <div class="linha-lista">
           <span>${o.data_missa.split("-").reverse().join("/")}</span>
-          <span class="mono">${fmtMoeda(o.valor_dinheiro)} + ${fmtMoeda(o.valor_pix)}</span>
+          <span class="mono">${fmtMoeda(o.valor_dinheiro)}</span>
         </div>`
           )
           .join("")
@@ -1779,8 +1776,11 @@ function attachAbaOfertorioHandlers() {
       comunidade_id: state.usuario.comunidade_id,
       data_missa: document.getElementById("of-data").value,
       valor_dinheiro: parseFloat(document.getElementById("of-dinheiro").value || "0"),
-      valor_pix: parseFloat(document.getElementById("of-pix").value || "0"),
     };
+    if (!(corpo.valor_dinheiro > 0)) {
+      erroDiv.innerHTML = `<div class="erro">Informe o valor do ofertório (maior que zero).</div>`;
+      return;
+    }
     const botao = e.target.querySelector('button[type="submit"]');
     if (botao.disabled) return;
     const textoBotao = botao.textContent;
@@ -2057,7 +2057,6 @@ function renderConteudoRelatorio(dados) {
       <td class="num">${fmtMoeda(c.total_dizimo_pix)}</td>
       <td class="num">${fmtMoeda(c.total_dizimo_cartao)}</td>
       <td class="num">${fmtMoeda(c.total_ofertorio_dinheiro)}</td>
-      <td class="num">${fmtMoeda(c.total_ofertorio_pix)}</td>
       <td class="num" style="font-weight:700;">${fmtMoeda(c.total_geral)}</td>
     </tr>`
     )
@@ -2068,14 +2067,12 @@ function renderConteudoRelatorio(dados) {
     .map((c) => {
       const d = (Number(c.total_dizimo) / maiorTotal) * 100;
       const oDin = (Number(c.total_ofertorio_dinheiro) / maiorTotal) * 100;
-      const oPix = (Number(c.total_ofertorio_pix) / maiorTotal) * 100;
       return `
         <div class="barra-linha">
           <div class="barra-nome">${escapeHtml(c.comunidade_nome)}</div>
           <div class="barra-trilha">
             <div class="barra-segmento" style="width:${d}%; background:var(--dark);" title="Dízimo: ${fmtMoeda(c.total_dizimo)}"></div>
-            <div class="barra-segmento" style="width:${oDin}%; background:var(--brick);" title="Ofertório dinheiro: ${fmtMoeda(c.total_ofertorio_dinheiro)}"></div>
-            <div class="barra-segmento" style="width:${oPix}%; background:var(--gold);" title="Ofertório Pix: ${fmtMoeda(c.total_ofertorio_pix)}"></div>
+            <div class="barra-segmento" style="width:${oDin}%; background:var(--brick);" title="Ofertório: ${fmtMoeda(c.total_ofertorio_dinheiro)}"></div>
           </div>
           <div class="barra-valor mono">${fmtMoeda(c.total_geral)}</div>
         </div>`;
@@ -2085,9 +2082,7 @@ function renderConteudoRelatorio(dados) {
   return `
     <div class="metricas">
       <div class="metrica"><div class="label">Dízimo individual</div><div class="valor">${fmtMoeda(dados.total_dizimo)}</div></div>
-      <div class="metrica"><div class="label">Ofertório (dinheiro + Pix)</div><div class="valor">${fmtMoeda(
-        parseFloat(dados.total_ofertorio_dinheiro) + parseFloat(dados.total_ofertorio_pix)
-      )}</div></div>
+      <div class="metrica"><div class="label">Ofertório</div><div class="valor">${fmtMoeda(dados.total_ofertorio_dinheiro)}</div></div>
       <div class="metrica" style="border:1.5px solid var(--brick);"><div class="label">Total geral</div><div class="valor" style="color:var(--brick);">${fmtMoeda(
         dados.total_geral
       )}</div></div>
@@ -2097,8 +2092,7 @@ function renderConteudoRelatorio(dados) {
         <h2 style="margin:0;">Comparativo entre comunidades</h2>
         <div class="legenda-cores">
           <span><i style="background:var(--dark);"></i>Dízimo</span>
-          <span><i style="background:var(--brick);"></i>Ofertório dinheiro</span>
-          <span><i style="background:var(--gold);"></i>Ofertório Pix</span>
+          <span><i style="background:var(--brick);"></i>Ofertório</span>
         </div>
       </div>
       ${barras || '<div class="vazio">Sem lançamentos no período.</div>'}
@@ -2113,8 +2107,8 @@ function renderConteudoRelatorio(dados) {
       </div>
       <div style="overflow-x:auto;">
       <table class="relatorio">
-        <thead><tr><th>Comunidade</th><th>Dízimo dinheiro</th><th>Dízimo Pix</th><th>Dízimo cartão</th><th>Ofertório dinheiro</th><th>Ofertório Pix</th><th>Total</th></tr></thead>
-        <tbody>${linhas || '<tr><td colspan="7" class="vazio">Sem lançamentos no período.</td></tr>'}</tbody>
+        <thead><tr><th>Comunidade</th><th>Dízimo dinheiro</th><th>Dízimo Pix</th><th>Dízimo cartão</th><th>Ofertório</th><th>Total</th></tr></thead>
+        <tbody>${linhas || '<tr><td colspan="6" class="vazio">Sem lançamentos no período.</td></tr>'}</tbody>
       </table>
       </div>
     </div>
